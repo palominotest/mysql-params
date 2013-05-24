@@ -1,0 +1,16 @@
+[
+  {
+    "model": "rds.CollectorRun",
+    "pk": 1,
+    "fields": {
+      "collector": "parameter_group"
+    }
+  },
+  {
+    "model": "rds.CollectorRun",
+    "pk": 2,
+    "fields": {
+        "collector": "db_instance"
+    }
+  }
+]
