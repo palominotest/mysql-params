@@ -12,6 +12,8 @@ class Migration(SchemaMigration):
         db.create_table('param_groups', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
+            ('region', self.gf('django.db.models.fields.CharField')(default=None, max_length=100, null=True, blank=True)),
+            ('family', self.gf('django.db.models.fields.CharField')(default=None, max_length=100, null=True, blank=True)),
             ('description', self.gf('django.db.models.fields.CharField')(default=None, max_length=250, null=True, blank=True)),
             ('parameters', self.gf('jsonfield.fields.JSONField')(default=None, null=True, blank=True)),
             ('run_time', self.gf('django.db.models.fields.DateTimeField')(default=None, null=True, blank=True)),
@@ -24,6 +26,7 @@ class Migration(SchemaMigration):
         db.create_table('db_instances', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
+            ('region', self.gf('django.db.models.fields.CharField')(default=None, max_length=100, null=True, blank=True)),
             ('endpoint', self.gf('django.db.models.fields.CharField')(default=None, max_length=250, null=True, blank=True)),
             ('port', self.gf('django.db.models.fields.PositiveIntegerField')(default=None, null=True, blank=True)),
             ('parameter_group_name', self.gf('django.db.models.fields.CharField')(default=None, max_length=100, null=True, blank=True)),
@@ -86,6 +89,7 @@ class Migration(SchemaMigration):
             'parameter_group_name': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'parameters': ('jsonfield.fields.JSONField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
             'port': ('django.db.models.fields.PositiveIntegerField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
+            'region': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'run_time': ('django.db.models.fields.DateTimeField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
             'updated_time': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
         },
@@ -93,9 +97,11 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'ParameterGroup', 'db_table': "'param_groups'"},
             'created_time': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'description': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '250', 'null': 'True', 'blank': 'True'}),
+            'family': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '100', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'parameters': ('jsonfield.fields.JSONField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
+            'region': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'run_time': ('django.db.models.fields.DateTimeField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
             'updated_time': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
         },

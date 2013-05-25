@@ -1,0 +1,59 @@
+DEBUG = True
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'param_tracker',                      # Or path to database file if using sqlite3.
+        # The following settings are not used with sqlite3:
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'PORT': '',                      # Set to empty string for default.
+    }
+}
+
+# Default Email settings
+DEFAULT_FROM_EMAIL = ''
+
+ADMINS = (
+    # ('Name', 'email@exmaple.com')
+)
+
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'rds.backends.sendmail.EmailBackend'
+
+# SMTP Backend settings
+EMAIL_HOST = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_USER = ''
+EMAIL_PORT = ''
+EMAIL_SUBJECT_PREFIX = '[MySQL Parameter Tracker]'
+EMAIL_USE_TLS = ''
+
+# Sendmail Backend settings
+SENDMAIL_PATH = '/usr/sbin/sendmail'
+
+# AWS Settings
+AWS_ACCESS_KEY_ID = ''
+AWS_SECRET_ACCESS_KEY = ''
+
+AWS_REGIONS = (
+    'us-east-1',
+    #'eu-west-1',
+    #'us-west-1',
+    #'us-west-2',
+    #'sa-east-1',
+    #'ap-northeast-1',
+    #'ap-southeast-1',
+    #'ap-southeast-2'
+)
+
+# Dictionary of regions with db instances to be used in data collection
+AWS_DB_INSTANCES = {
+    'us-east-1': (
+        {
+            'name': 'db1',
+            'password': 'password'
+        },
+    ),
+}

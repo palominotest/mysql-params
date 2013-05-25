@@ -135,13 +135,16 @@ class ParameterGroupManager(models.Manager, ParameterGroupMixin):
     def create_unreachable_entry(self, name, run_time):
         self.create(
             name=name,
+            region=None,
+            family=None,
             description=None,
             parameters=None,
             run_time=run_time,
         )
         
     def unreachable(self, instance):
-        return instance.description is None and instance.parameters is None
+        return instance.region is None and instance.family is None and \
+                instance.description is None and instance.parameters is None
     
     def deleted(self, instance):
         return instance.parameters is None
@@ -164,6 +167,7 @@ class DBInstanceManager(models.Manager,DBInstanceMixin):
     def create_unreachable_entry(self, name, run_time):
         self.create(
             name=name,
+            region = None,
             endpoint=None,
             port=None,
             parameter_group_name=None,
@@ -172,7 +176,7 @@ class DBInstanceManager(models.Manager,DBInstanceMixin):
         )
         
     def unreachable(self, instance):
-        return instance.endpoint is None and instance.port is None and \
+        return instance.region is None and instance.endpoint is None and instance.port is None and \
                 instance.parameters is None and instance.parameter_group_name is None 
     
     def deleted(self, instance):

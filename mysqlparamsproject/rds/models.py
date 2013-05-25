@@ -7,6 +7,8 @@ import managers
 
 class ParameterGroup(models.Model):
     name = models.CharField(max_length=100)
+    region = models.CharField(max_length=100, blank=True, null=True, default=None)
+    family = models.CharField(max_length=100, blank=True, null=True, default=None)
     description = models.CharField(max_length=250, blank=True, null=True, default=None)
     parameters = JSONField(blank=True, null=True, default=None,
                             load_kwargs={'object_pairs_hook': collections.OrderedDict})
@@ -22,8 +24,11 @@ class ParameterGroup(models.Model):
     
     def __unicode__(self):
         pg_str = 'Parameter Group: %s\nParameters:' % (self.name)
-        for k in sorted(self.parameters.keys()):
-            pg_str += '\n%s: %s' % (k, self.parameters.get(k))
+        if not self.parameters is None:
+            for k in sorted(self.parameters.keys()):
+                pg_str += '\n%s: %s' % (k, self.parameters.get(k))
+        else:
+            pg_str += 'None'
         return pg_str
         
     @property
@@ -33,6 +38,7 @@ class ParameterGroup(models.Model):
         
 class DBInstance(models.Model):
     name = models.CharField(max_length=100)
+    region = models.CharField(max_length=100, blank=True, null=True, default=None)
     endpoint = models.CharField(max_length=250, blank=True, null=True, default=None)
     port = models.PositiveIntegerField(blank=True, null=True, default=None)
     parameter_group_name = models.CharField(max_length=100, blank=True, null=True, default=None)
@@ -50,8 +56,11 @@ class DBInstance(models.Model):
     
     def __unicode__(self):
         instance_str = 'DB Instance: %s\nParameters:' % (self.name)
-        for k in sorted(self.parameters.keys()):
-            instance_str += '\n%s: %s' % (k, self.parameters.get(k))
+        if not self.parameters is None:
+            for k in sorted(self.parameters.keys()):
+                instance_str += '\n%s: %s' % (k, self.parameters.get(k))
+        else:
+            instance_str += 'None'
         return instance_str
         
     @property

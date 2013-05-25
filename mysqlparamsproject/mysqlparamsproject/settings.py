@@ -179,6 +179,20 @@ LOGGING = {
     }
 }
 
+# Default Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# SMTP Backend settings
+EMAIL_HOST = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_USER = ''
+EMAIL_PORT = ''
+EMAIL_SUBJECT_PREFIX = ''
+EMAIL_USE_TLS = ''
+
+# Sendmail Backend settings
+SENDMAIL_PATH = '/usr/sbin/sendmail'
+
 try:
     from local_settings import *
 except ImportError:

@@ -1,6 +1,10 @@
 *.py[cod]
 *~
 
+local_settings.py
+media/
+static/
+
 # C extensions
 *.so
 

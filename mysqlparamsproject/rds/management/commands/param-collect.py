@@ -137,15 +137,20 @@ class Command(BaseCommand):
             snap.save()
     
     def collect_parameter_group(self, conn, run_time):
+        region = conn.region.name
         logger.info('[parameter groups start]')
         pgs = get_all_dbparameter_groups(conn)
         prev_snapshot = set(ParameterGroup.objects.find_versions('parameter_group', txn='latest').values_list('id', flat=True))
         cur_snapshot = prev_snapshot.copy()
         prev_version = ParameterGroup.objects.filter(id__in=prev_snapshot)
         for pg in pgs:
+            if pg.DBParameterGroupFamily not in ('mysql5.5', 'mysql5.1'):
+                continue
             pg = get_all_dbparameters(pg)
             new_pg = ParameterGroup(
                 name=pg.name,
+                region=region,
+                family=pg.DBParameterGroupFamily,
                 description=pg.description,
                 run_time=run_time,
             )
@@ -171,6 +176,8 @@ class Command(BaseCommand):
             if g is None and not ParameterGroup.objects.deleted(pg):
                 del_pg = ParameterGroup(
                     name=pg.name,
+                    region=pg.region,
+                    family=pg.family,
                     description=pg.description,
                     parameters=None,
                     run_time=run_time,
@@ -184,7 +191,7 @@ class Command(BaseCommand):
     def collect_db_instance(self, conn, run_time):
         region = conn.region.name
         logger.info('[db instances start]')
-        instances = settings.AWS_DB_INSTANCES.get(region)
+        instances = settings.AWS_DB_INSTANCES.get(region, ())
         prev_snapshot = set(DBInstance.objects.find_versions('db_instance', txn='latest').values_list('id', flat=True))
         cur_snapshot = prev_snapshot.copy()
         prev_version = DBInstance.objects.filter(id__in=prev_snapshot)
@@ -196,6 +203,7 @@ class Command(BaseCommand):
             parameter_group = db_instance.parameter_group
             new_dbi = DBInstance(
                 name=db_instance.id,
+                region=region,
                 endpoint=endpoint[0],
                 port=endpoint[1],
                 parameter_group_name=parameter_group.name,
@@ -230,6 +238,7 @@ class Command(BaseCommand):
             if g is None and not DBInstance.objects.deleted(pg):
                 del_dbi = DBInstance(
                     name=dbi.name,
+                    region=dbi.region,
                     endpoint=dbi.endpoint,
                     port=dbi.port,
                     parameter_group_name=dbi.parameter_group_name,
