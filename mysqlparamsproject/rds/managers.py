@@ -70,6 +70,24 @@ class CollectorMixin(object):
         )
         return res
         
+    def get_changed_parameters(self, old_instance, new_instance):
+        res = []
+        old_params = old_instance.parameters
+        new_params = new_instance.parameters
+        if old_params is None or new_params is None:
+            return res
+        keys = sorted(set(old_params.keys() + new_params.keys()))
+        for k in keys:
+            old_val = old_instance.parameters.get(k)
+            new_val = new_instance.parameters.get(k)
+            if old_val != new_val:
+                res.append({
+                    'key': k,
+                    'old_val': old_val,
+                    'new_val': new_val,
+                })
+        return res
+        
     def find_last(self, name):
         res = self.filter(name=name).order_by('-id')
         if res.count() > 0:

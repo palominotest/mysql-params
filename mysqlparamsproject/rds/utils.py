@@ -1,3 +1,5 @@
+import re
+
 def get_all_dbparameter_groups(conn):
     pgs = []
     marker = ''
@@ -21,3 +23,18 @@ def get_all_dbparameters(pg):
         else:
             break
     return pg
+    
+def compare_pg_to_dbi(pg, dbi):
+    res = []
+    for k in pg.parameters.keys():
+        pg_val = pg.parameters.get(k)
+        dbi_val = dbi.parameters.get(k)
+        regex = re.search('{.*}', pg_val)
+        # Don't process pg values with pseudo variables
+        if regex is None and pg_val != dbi_val:
+            res.append({
+                'key': k,
+                'pg_val': pg_val,
+                'dbi_val': dbi_val,
+            })
+    return res

@@ -59,6 +59,9 @@ class Command(BaseCommand):
                     logger.info("[region start]: %s" % (region))
                     if stat is None:
                         for statistic in stats:
+                            collector_run = CollectorRun.objects.get(collector=statistic)
+                            collector_run.last_run = run_time
+                            collector_run.save()
                             func = locals().get('collect_%s' % (statistic))
                             prev_snapshot, cur_snapshot = func(conn, run_time)
                             if collect_data.get(statistic) is None:
@@ -67,6 +70,9 @@ class Command(BaseCommand):
                                 print "CHANGED: %s" % (True if prev_snapshot != cur_snapshot else False)
                                 collect_data[statistic].append((statistic, prev_snapshot, cur_snapshot))
                     elif stat in stats:
+                        collector_run = CollectorRun.objects.get(collector=stat)
+                        collector_run.last_run = run_time
+                        collector_run.save()
                         func = locals().get('collect_%s' % (stat))
                         prev_snapshot, cur_snapshot = func(conn, run_time)
                         if collect_data.get(stat) is None:

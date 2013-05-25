@@ -22,7 +22,7 @@ class Command(BaseCommand):
             '--stat',
             dest='stat',
             default=None,
-            help='Collect a single <statistic>. See --list-stats for available statistics.',
+            help='Report a single <statistic>. See --list-stats for available statistics.',
         ),
         make_option(
             '--list-stats',
@@ -36,7 +36,7 @@ class Command(BaseCommand):
             '--output',
             dest='output',
             default='text',
-            help='Specifies an output formatter. One of: email, text, nagios, rrd'
+            help='Specifies an output formatter. One of: email, text'
         ),
         make_option(
             '-s',
@@ -50,14 +50,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         find_type = 'normal'
         sql_conditions = {}
-    
-        if options.get('list_stats'):
-            print 'Available Statistics:'
-            collector_runs = CollectorRun.objects.all()
-            for i,collector_run in enumerate(collector_runs):
-               print '%d. %s' % (i+1, collector_run.collector)
-            sys.exit(0)
-        
         try:
             stat = options.get('stat')
             stats = CollectorRun.objects.all().values_list('collector', flat=True)
@@ -85,8 +77,8 @@ class Command(BaseCommand):
                 pg_query = ParameterGroup.objects.all()
                 dbi_query = DBInstance.objects.all()
             else:
-                pg_query = ParameterGroup.objects.find_versions('parameter_group')
-                dbi_query = DBInstance.objects.find_versions('db_instance')
+                pg_query = ParameterGroup.objects.find_versions('parameter_group', txn='latest')
+                dbi_query = DBInstance.objects.find_versions('db_instance', txn='latest')
                 
             if sql_conditions.get('since') is not None:
                 pg_query = pg_query.filter(run_time__gte=sql_conditions.get('since'))

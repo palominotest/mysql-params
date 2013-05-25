@@ -1,9 +1,14 @@
 import collections
+import re
 
+from django.conf import settings
 from django.db import models
+
+import boto.rds
 from jsonfield import JSONField
 
 import managers
+from utils import get_all_dbparameters
 
 class ParameterGroup(models.Model):
     name = models.CharField(max_length=100)
@@ -23,6 +28,10 @@ class ParameterGroup(models.Model):
         db_table = 'param_groups'
     
     def __unicode__(self):
+        return self.name
+        
+    @property
+    def to_string(self):
         pg_str = 'Parameter Group: %s\nParameters:' % (self.name)
         if not self.parameters is None:
             for k in sorted(self.parameters.keys()):
@@ -55,6 +64,10 @@ class DBInstance(models.Model):
         db_table = 'db_instances'
     
     def __unicode__(self):
+        return self.name
+    
+    @property
+    def to_string(self):
         instance_str = 'DB Instance: %s\nParameters:' % (self.name)
         if not self.parameters is None:
             for k in sorted(self.parameters.keys()):
@@ -67,6 +80,35 @@ class DBInstance(models.Model):
     def status(self):
         status = self.__class__.objects.status(self)
         return status
+        
+    def get_difference_with_pg(self):
+        conn = boto.rds.connect_to_region(self.region, aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+        res = []
+        pg = conn.get_all_dbparameter_groups(self.parameter_group_name)[0]
+        pg = get_all_dbparameters(pg)
+        res = []
+        for k in pg.keys():
+            pg_val = pg.get(k)._value
+            if pg_val == '0':
+                pg_val = 'OFF'
+            if pg_val == '1':
+                pg_val = 'ON'
+            if str(pg_val).endswith('/'):
+                pg_val = pg_val[:-1]
+            if pg_val != None:
+                dbi_val = self.parameters.get(k)
+                if str(dbi_val).endswith('/'):
+                    dbi_val = dbi_val[:-1]
+                regex = re.search('{.*}', pg_val)
+                # Don't process pg values with pseudo variables
+                if regex is None and pg_val != dbi_val:
+                    res.append({
+                        'key': k,
+                        'pg_val': pg_val,
+                        'dbi_val': dbi_val,
+                    })
+        return res
         
 class CollectorRun(models.Model):
     collector = models.CharField(max_length=25, null=True, blank=True, default=None)
