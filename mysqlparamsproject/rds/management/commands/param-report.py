@@ -96,11 +96,11 @@ class Command(BaseCommand):
             dbi_query = dbi_query.order_by('-run_time')
                 
             if stat is None:
-                lines = self.get_lines(pg_query=pg_query, dbi_query=dbi_query)
+                lines = self.get_lines(pg_query=pg_query, dbi_query=dbi_query, output=output)
             elif stat == 'parameter_group':
-                lines = self.get_lines(pg_query=pg_query)
+                lines = self.get_lines(pg_query=pg_query, output=output)
             elif stat == 'db_instance':
-                lines = self.get_lines(dbi_query=dbi_query)
+                lines = self.get_lines(dbi_query=dbi_query, output=output)
             
             res = '\n'.join(lines)    
             if output == 'text':
@@ -117,23 +117,28 @@ class Command(BaseCommand):
             tb = traceback.format_exc()
             logger.error(tb)
             
-    def get_lines(self, pg_query=None, dbi_query=None):
+    def get_lines(self, pg_query=None, dbi_query=None, output='text'):
         lines = []
         if pg_query is not None:
             lines.append('Reporting Parameter Groups:')
             empty = True
             for run_time,group in groupby(pg_query, key=lambda row: row.run_time):
                 empty = False
-                table = Texttable()
-                table.set_cols_width([10, 15, 10, 30, 20])
-                table.set_deco(Texttable.HEADER)
-                rows = [['Status', 'Name', 'Family', 'Description', 'Created Time']]
-                lines.append('-- %s %s' % (run_time, ('-'*74)))
-                for element in group:
-                    rows.append([element.status, element.name, element.family, element.description, element.created_time])
-                table.add_rows(rows)
-                lines.append(table.draw())
-                lines.append('')
+                if output == 'text':
+                    table = Texttable()
+                    table.set_cols_width([10, 15, 10, 30, 20])
+                    table.set_deco(Texttable.HEADER)
+                    rows = [['Status', 'Name', 'Family', 'Description', 'Created Time']]
+                    lines.append('-- %s %s' % (run_time, ('-'*74)))
+                    for element in group:
+                        rows.append([element.status, element.name, element.family, element.description, element.created_time])
+                    table.add_rows(rows)
+                    lines.append(table.draw())
+                    lines.append('')
+                elif output == 'email':
+                    lines.append('-- %s' % (run_time))
+                    for element in group:
+                        lines.append('[%s] Family: %s Name: %s' % (element.status, element.family, element.name))
             if empty:
                 lines.append('No changes.')
         if dbi_query is not None:
@@ -141,17 +146,23 @@ class Command(BaseCommand):
             empty = True
             for run_time,group in groupby(dbi_query, key=lambda row: row.run_time):
                 empty = False
-                table = Texttable()
-                table.set_cols_width([10, 15, 10, 30, 5, '15', 20])
-                table.set_deco(Texttable.HEADER)
-                rows = [['Status', 'Name', 'Region', 'Endpoint', 'Port', 'Parameter Group', 'Created Time']]
-                lines.append('-- %s %s' % (run_time, ('-'*100)))
-                for element in group:
-                    rows.append([element.status, element.name, element.region, element.endpoint, 
-                                element.port, element.parameter_group_name, element.created_time])
-                table.add_rows(rows)
-                lines.append(table.draw())
-                lines.append('')
+                if output == 'text':
+                    table = Texttable()
+                    table.set_cols_width([10, 15, 10, 30, 5, '15', 20])
+                    table.set_deco(Texttable.HEADER)
+                    rows = [['Status', 'Name', 'Region', 'Endpoint', 'Port', 'Parameter Group', 'Created Time']]
+                    lines.append('-- %s %s' % (run_time, ('-'*100)))
+                    for element in group:
+                        rows.append([element.status, element.name, element.region, element.endpoint, 
+                                    element.port, element.parameter_group_name, element.created_time])
+                    table.add_rows(rows)
+                    lines.append(table.draw())
+                    lines.append('')
+                elif output == 'email':
+                    lines.append('-- %s' % (run_time))
+                    for element in group:
+                        lines.append('[%s] Region: %s Name: %s Endpoint: %s Port: %s' % (element.status, element.region, 
+                                                                            element.name, element.endpoint, element.port))
             if empty:
                 lines.append('No changes.')
         return lines
