@@ -13,6 +13,7 @@ DATABASES = {
 }
 
 # Default Email settings
+# Email settings is required for param-check management command
 DEFAULT_FROM_EMAIL = ''
 
 ADMINS = (
@@ -37,6 +38,7 @@ SENDMAIL_PATH = '/usr/sbin/sendmail'
 AWS_ACCESS_KEY_ID = ''
 AWS_SECRET_ACCESS_KEY = ''
 
+# Regions where data will be collected
 AWS_REGIONS = (
     'us-east-1',
     #'eu-west-1',
