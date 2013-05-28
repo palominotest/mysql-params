@@ -74,12 +74,12 @@ class Command(BaseCommand):
         pgs = []
         for name in names_list:
             pg = ParameterGroup.objects.find_last(name.strip())
-            if pg is not None:
+            if pg is not None and pg.status != 'deleted':
                 pgs.append(pg)
         if len(names_list) == 1:
             pg = ParameterGroup.objects.find_last(names_list[0])
             prev = ParameterGroup.objects.previous_version(pg)
-            if prev is not None:
+            if prev is not None and prev.status != 'deleted':
                 pgs.append(prev)
                 
         if len(pgs) <= 1:
@@ -111,12 +111,12 @@ class Command(BaseCommand):
         dbis = []
         for name in names_list:
             dbi = DBInstance.objects.find_last(name.strip())
-            if dbi is not None:
+            if dbi is not None and dbi.status != 'deleted':
                 dbis.append(dbi)
         if len(names_list) == 1:
             dbi = DBInstance.objects.find_last(names_list[0])
             prev = DBInstance.objects.previous_version(dbi)
-            if prev is not None:
+            if prev is not None and prev.status != 'deleted':
                 dbis.append(prev)
         
         if len(dbis) <= 1:
