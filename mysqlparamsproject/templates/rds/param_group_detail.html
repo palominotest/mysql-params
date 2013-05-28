@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}{{ block.super }} - Parameter Groups{% endblock title %}
+
+{% block hero %}
+<h2>Parameter Group: {{ param_group.name }}</h2>
+<p>
+Region: {{ param_group.region }}<br />
+Family: {{ param_group.family }}<br />
+Description: {{ param_group.description }}<br />
+</p>
+{% endblock hero %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="span12">
+            <h3>Parameters:</h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for k,v in param_group.ordered_parameters.items %}
+                    <tr>
+                        <td>{{ k }}</td>
+                        <td>{{ v }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        <div>
+    <div>
+</div>
+{% endblock body %}

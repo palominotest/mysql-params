@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{{ block.super }} - Parameter Groups{% endblock title %}
+
+{% block hero %}<h1>Parameter Groups</h1>{% endblock hero %}
+
+{% block body %}
+
+<div class="container">
+    <div class="row">
+        <div class="span12">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Region</th>
+                        <th>Family</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pg in param_groups %}
+                    <tr>
+                        <td><a href="{% url 'param_group_detail' pg.id %}">{{ pg.name }}</a></td>
+                        <td>{{ pg.region }}</td>
+                        <td>{{ pg.family }}</td>
+                        <td>{{ pg.description }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        <div>
+    <div>
+</div>
+{% endblock body %}
+

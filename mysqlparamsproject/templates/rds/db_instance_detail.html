@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}{{ block.super }} - DB Instances{% endblock title %}
+
+{% block hero %}
+<h2>DB Instance: {{ db_instance.name }}</h2>
+<p>
+Region: {{ db_instance.region }}<br />
+Endpoint: {{ db_instance.endpoint }}<br />
+Port: {{ db_instance.port }}<br />
+Parameter Group: {{ db_instance.parameter_group_name }}<br />
+</p>
+{% endblock hero %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="span12">
+            <h3>Parameters:</h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Key</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for k,v in db_instance.ordered_parameters.items %}
+                    <tr>
+                        <td>{{ k }}</td>
+                        <td>{{ v }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        <div>
+    <div>
+</div>
+{% endblock body %}

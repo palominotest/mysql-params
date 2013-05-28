@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}{{ block.super }} - DB Instances{% endblock title %}
+
+{% block hero %}<h1>DB Instances</h1>{% endblock hero %}
+
+{% block body %}
+
+<div class="container">
+    <div class="row">
+        <div class="span12">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Region</th>
+                        <th>Endpoint</th>
+                        <th>Port</th>
+                        <th>Parameter Group</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dbi in db_instances %}
+                    <tr>
+                        <td><a href="{% url 'db_instance_detail' dbi.id %}">{{ dbi.name }}</a></td>
+                        <td>{{ dbi.region }}</td>
+                        <td>{{ dbi.endpoint}}</td>
+                        <td>{{ dbi.port }}</td>
+                        <td>{{ dbi.parameter_group_name }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        <div>
+    <div>
+</div>
+{% endblock body %}
+

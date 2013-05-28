@@ -45,6 +45,13 @@ class ParameterGroup(models.Model):
         status = self.__class__.objects.status(self)
         return status
         
+    @property
+    def ordered_parameters(self):
+        if self.parameters is not None:
+            return collections.OrderedDict(sorted(self.parameters.items(), key=lambda t: t[0]))
+        else:
+            return {}
+        
 class DBInstance(models.Model):
     name = models.CharField(max_length=100)
     region = models.CharField(max_length=100, blank=True, null=True, default=None)
@@ -80,6 +87,13 @@ class DBInstance(models.Model):
     def status(self):
         status = self.__class__.objects.status(self)
         return status
+        
+    @property
+    def ordered_parameters(self):
+        if self.parameters is not None:
+            return collections.OrderedDict(sorted(self.parameters.items(), key=lambda t: t[0]))
+        else:
+            return {}
         
     def get_difference_with_pg(self):
         conn = boto.rds.connect_to_region(self.region, aws_access_key_id=settings.AWS_ACCESS_KEY_ID,

@@ -44,7 +44,7 @@ class Command(BaseCommand):
             changed = []
             deleted = []        
             for dbi in dbis:
-                status = pg.status
+                status = dbi.status
                 if status == 'new':
                     new.append(dbi)
                 elif status == 'deleted':
@@ -113,14 +113,14 @@ class Command(BaseCommand):
                 res.append('No new database instances.')
             else:
                 for i,dbi in enumerate(new_dbis):
-                    res.append('%d. Family: %s Name: %s' % ((i+1), dbi.family, dbi.name))
+                    res.append('%d. Region: %s Name: %s Endpoint: %s Port: %s' % ((i+1), dbi.region, dbi.name, dbi.endpoint, dbi.port))
             res.append('Deleted:')
             deleted_dbis = dbis_dict.get('deleted', [])
             if len(deleted_dbis) == 0:
                 res.append('No deleted database instances.')
             else:
                 for i,dbi in enumerate(deleted_dbis):
-                    res.append('%d. Family: %s Name: %s' % ((i+1), dbi.family, dbi.name))
+                    res.append('%d. Region: %s Name: %s Endpoint: %s Port: %s' % ((i+1), dbi.region, dbi.name, dbi.endpoint, dbi.port))
             res.append('')
             res.append('Changed:')
             changed_dbis = dbis_dict.get('changed', [])
