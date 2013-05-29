@@ -39,3 +39,10 @@ class DBInstanceDetailView(generic.DetailView):
     context_object_name = 'db_instance'
     model = DBInstance
     
+class ParameterGroupReportView(generic.ListView):
+    template_name = 'rds/param_group_report.html'
+    context_object_name = 'param_groups'
+    
+    def get_queryset(self):
+        queryset = ParameterGroup.objects.all()
+        return queryset

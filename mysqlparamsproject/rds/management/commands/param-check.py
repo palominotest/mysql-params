@@ -62,16 +62,7 @@ class Command(BaseCommand):
                 diff = dbi.get_difference_with_pg()
                 if len(diff) != 0:
                     needs_restart.append((dbi, diff))
-                
-            
-            if len(pgs_dict.get('new', [])) == 0 and \
-                    len(pgs_dict.get('deleted', [])) == 0 and \
-                    len(pgs_dict.get('changed', [])) == 0 and \
-                    len(dbis_dict.get('new', [])) == 0 and \
-                    len(dbis_dict.get('deleted', [])) == 0 and \
-                    len(dbis_dict.get('changed', [])) == 0:
-               sys.exit(0) 
-            
+                    
             res.append('Parameter Groups:')
             res.append('')
             res.append('New:')
@@ -138,14 +129,17 @@ class Command(BaseCommand):
             res.append('')
             
             res.append('The following instances may need to be restarted.')
-            for dbi_tuple in needs_restart:
-                dbi = dbi_tuple[0]
-                diff = dbi_tuple[1]
-                res.append('%d. Region: %s Name: %s Endpoint: %s Port: %s Parameter Group: %s' % ((i+1), 
-                            dbi.region, dbi.name, dbi.endpoint, dbi.port, dbi.parameter_group_name))
-                res.append('\tParameter Differences:')
-                for param in diff:
-                    res.append("\t- %s: Parameter Group Value: %s, DB Instance Value: %s" % (param.get('key'), param.get('pg_val'), param.get('dbi_val')))
+            if len(needs_restart) > 0:
+                for dbi_tuple in needs_restart:
+                    dbi = dbi_tuple[0]
+                    diff = dbi_tuple[1]
+                    res.append('%d. Region: %s Name: %s Endpoint: %s Port: %s Parameter Group: %s' % ((i+1), 
+                                dbi.region, dbi.name, dbi.endpoint, dbi.port, dbi.parameter_group_name))
+                    res.append('\tParameter Differences:')
+                    for param in diff:
+                        res.append("\t- %s: Parameter Group Value: %s, DB Instance Value: %s" % (param.get('key'), param.get('pg_val'), param.get('dbi_val')))
+            else:
+                res.append('No instance needs to be restarted.')
             
             subject = '%s Change Alert' % (settings.EMAIL_SUBJECT_PREFIX)
             body = '\n'.join(res)
