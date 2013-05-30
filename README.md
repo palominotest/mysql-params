@@ -135,3 +135,8 @@ Utility for tracking mysql parameters
         
         # Compare db instances
         ./manage.py param-compare --names 'dbi1,dbi2' --stat db_instance
+        
+##Web GUI
+To run the gui, execute the command below.
+    
+    ./manage.py runserver
