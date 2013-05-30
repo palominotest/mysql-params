@@ -241,7 +241,7 @@ class Command(BaseCommand):
         for dbi in prev_version:
             logger.info('[delete-check] %s' % (dbi.name))
             g  = self._find_in_instances(dbi.name, instances)
-            if g is None and not DBInstance.objects.deleted(pg):
+            if g is None and not DBInstance.objects.deleted(dbi):
                 del_dbi = DBInstance(
                     name=dbi.name,
                     region=dbi.region,

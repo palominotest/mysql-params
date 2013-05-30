@@ -2,16 +2,38 @@
 
 {% block title %}{{ block.super }} - DB Instances{% endblock title %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/prettyCheckable.css">
+{% endblock extra_css %}
+
 {% block hero %}<h1>DB Instances</h1>{% endblock hero %}
 
 {% block body %}
 
 <div class="container">
+    <div class="row alert alert-error hide" id="alert">
+        <div class="span12">
+            <p>
+                <strong>Please choose db instances to compare.</strong><br />
+                <em>Note: Choosing one db instance will compare the instance to its previous version.</em>
+            </p>
+        </div>
+    </div> 
+    <div class="row">
+        <div class="span12">
+            <form  id="compare-form" class="form-horizontal" method="POST" action="{% url 'db_instance_compare' %}">{% csrf_token %}
+                <input type="hidden" id="object-ids" name="object-ids" />
+                <input type="submit" class="btn btn-primary" value="Compare Selected" />
+            </form>
+        </div>
+    </div>
+    <div class="row">
     <div class="row">
         <div class="span12">
             <table class="table table-striped">
                 <thead>
                     <tr>
+                        <th>Add to comparison</th>
                         <th>Name</th>
                         <th>Region</th>
                         <th>Endpoint</th>
@@ -22,6 +44,7 @@
                 <tbody>
                     {% for dbi in db_instances %}
                     <tr>
+                        <td><input type="checkbox" class="rows" value="{{ dbi.id }}" name="compare-selection" /></td>
                         <td><a href="{% url 'db_instance_detail' dbi.id %}">{{ dbi.name }}</a></td>
                         <td>{{ dbi.region }}</td>
                         <td>{{ dbi.endpoint}}</td>
@@ -36,3 +59,28 @@
 </div>
 {% endblock body %}
 
+{% block extra_js %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/prettyCheckable.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+
+    $('input.rows').prettyCheckable();
+    
+    $('#compare-form').submit(function(){
+        var ids = []
+        $('input.rows:checkbox:checked').each(function(index, element){
+            ids.push($(element).val());
+        });
+        if(ids.length == 0){
+            $('#alert').show();
+            return false;
+        }
+        else{
+            $('#compare-form #object-ids').val(ids.join());
+            return true;
+        }
+    });
+    
+});
+</script>
+{% endblock extra_js %}

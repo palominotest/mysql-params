@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from django.core.mail import send_mail
 
 from rds.models import CollectorRun, ParameterGroup, DBInstance
+from rds.utils import get_sorted_dict, get_needs_restart
 
 logger = logging.getLogger('mysqlparams')
 
@@ -18,50 +19,10 @@ class Command(BaseCommand):
             dbi_collector = CollectorRun.objects.get(collector='db_instance')
             pgs = ParameterGroup.objects.filter(run_time=pg_collector.last_run)
             dbis = DBInstance.objects.filter(run_time=dbi_collector.last_run)
-            pgs_dict = {}
-            dbis_dict = {}
-            needs_restart = []
+            pgs_dict = get_sorted_dict(pgs)
+            dbis_dict = get_sorted_dict(dbis)
+            needs_restart = get_needs_restart(dbis)
             res = []
-            
-            new = []
-            changed = []
-            deleted = []
-            for pg in pgs:
-                status = pg.status
-                if status == 'new':
-                    new.append(pg)
-                elif status == 'deleted':
-                    deleted.append(pg)
-                elif status == 'changed':
-                    changed.append(pg)
-            pgs_dict.update({
-                'new':new,
-                'deleted':deleted,
-                'changed':changed,
-            })
-            
-            new = []
-            changed = []
-            deleted = []        
-            for dbi in dbis:
-                status = dbi.status
-                if status == 'new':
-                    new.append(dbi)
-                elif status == 'deleted':
-                    deleted.append(dbi)
-                elif status == 'changed':
-                    changed.append(dbi)
-                    
-            dbis_dict.update({
-                'new':new,
-                'deleted':deleted,
-                'changed':changed,
-            })
-            
-            for dbi in dbis:
-                diff = dbi.get_difference_with_pg()
-                if len(diff) != 0:
-                    needs_restart.append((dbi, diff))
                     
             res.append('Parameter Groups:')
             res.append('')
@@ -105,6 +66,7 @@ class Command(BaseCommand):
             else:
                 for i,dbi in enumerate(new_dbis):
                     res.append('%d. Region: %s Name: %s Endpoint: %s Port: %s' % ((i+1), dbi.region, dbi.name, dbi.endpoint, dbi.port))
+            res.append('')
             res.append('Deleted:')
             deleted_dbis = dbis_dict.get('deleted', [])
             if len(deleted_dbis) == 0:
@@ -130,7 +92,7 @@ class Command(BaseCommand):
             
             res.append('The following instances may need to be restarted.')
             if len(needs_restart) > 0:
-                for dbi_tuple in needs_restart:
+                for i,dbi_tuple in enumerate(needs_restart):
                     dbi = dbi_tuple[0]
                     diff = dbi_tuple[1]
                     res.append('%d. Region: %s Name: %s Endpoint: %s Port: %s Parameter Group: %s' % ((i+1), 

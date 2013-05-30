@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ block.super }} | Recent Changes
+{% endblock title %}
+
+{% block hero %}
+<h1>Recent Changes</h1>
+{% endblock hero %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="span6">
+            <h3>Parameter Groups:</h3>
+            <h4>New:</h4>
+            <ul>
+                {% for pg in pgs_dict.new %}
+                <li><a href="{% url 'param_group_detail' pg.id %}">{{ pg.name }}</a></li>
+                {% empty %}
+                <li>No new parameter groups.</li>
+                {% endfor %}
+            </ul>
+            <h4>Deleted:</h4>
+            <ul>
+                {% for pg in pgs_dict.deleted %}
+                <li>{{ pg.name }}</li>
+                {% empty %}
+                <li>No deleted parameter groups.</li>
+                {% endfor %}
+            </ul>
+            <h4>Changed:</h4>
+            <ul>
+                {% for pg in pgs_dict.changed %}
+                <li>
+                    <a href="{% url 'param_group_detail' pg.id %}">{{ pg.name }}</a><br/>
+                    <span>OLD ID: {{ pg.previous_version.id }} NEW ID: {{ pg.id }}</span><br />
+                    <span>Changed Parameters:</span>
+                    <ul>
+                        {% for param in pg.params_changed_from_prev %}
+                        <li>{{ param.key }}: {{ param.old_val }} -> {{ param.new_val }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% empty %}
+                <li>No changed parameter groups.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="span6">
+            <h3>DB Instances:</h3>
+            <h4>New:</h4>
+            <ul>
+                {% for dbi in dbis_dict.new %}
+                <li><a href="{% url 'db_instance_detail' dbi.id %}">{{ dbi.name }}</a></li>
+                {% empty %}
+                <li>No new db instances.</li>
+                {% endfor %}
+            </ul>
+            <h4>Deleted:</h4>
+            <ul>
+                {% for dbi in dbis_dict.deleted %}
+                <li>{{ dbi.name }}</li>
+                {% empty %}
+                <li>No deleted db instances.</li>
+                {% endfor %}
+            </ul>
+            <h4>Changed:</h4>
+            <ul>
+                {% for dbi in dbis_dict.changed %}
+                <li>
+                    <a href="{% url 'db_instance_detail' dbi.id %}">{{ dbi.name }}</a><br/>
+                    <span>OLD ID: {{ dbi.previous_version.id }} NEW ID: {{ dbi.id }}</span><br />
+                    <span>Changed Parameters:</span>
+                    <ul>
+                        {% for param in dbi.params_changed_from_prev %}
+                        <li>{{ param.key }}: {{ param.old_val }} -> {{ param.new_val }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% empty %}
+                <li>No changed db instances.</li>
+                {% endfor %}
+            </ul>
+            <h4>The following instances may need to be restarted:</h4>
+            <ul>
+                {% for dbi in needs_restart %}
+                <li>
+                    <a href="{% url 'db_instance_detail' dbi.0.id %}">{{ dbi.0.name }}</a><br />
+                    <span>Parameter Differences:</span>
+                    <ul>
+                        {% for param in dbi.1 %}
+                        <li>
+                            {{ param.key }}:<br />
+                            Parameter Group Value: {{ param.pg_val }}<br />
+                            DB Instance Value: {{ param.dbi_val }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% empty %}
+                <li>No db instances needs to be restarted.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock body %}

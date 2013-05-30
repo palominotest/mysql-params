@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load rds_tags %}
+
+{% block title %}
+{{ block.super }} | Compare DB Instances
+{% endblock title %}
+
+{% block hero %}
+<h1>Compare DB Instances</h1>
+{% endblock hero %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="span12">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Keys</th>
+                        {% for dbi in db_instances %}
+                        <th>ID: {{ dbi.id }} - {{ dbi.name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key in keys %}
+                    <tr{% if key|check_difference:db_instances %} class="highlight"{% endif %}>
+                        <td>{{ key }}</td>
+                        {% for dbi in db_instances %}
+                        <td>{{ dbi.parameters|get_item:key }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        <div>
+    <div>
+</div>
+{% endblock body %}

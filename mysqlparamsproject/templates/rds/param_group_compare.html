@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load rds_tags %}
+
+{% block title %}
+{{ block.super }} | Compare Parameter Groups
+{% endblock title %}
+
+{% block hero %}
+<h1>Compare Parameter Groups</h1>
+{% endblock hero %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="span12">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Keys</th>
+                        <th>Default Values</th>
+                        {% for pg in param_groups %}
+                        <th>ID: {{ pg.id }} - {{ pg.name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key in keys %}
+                    {% with all_pgs=param_groups|extend_pgs:default %}
+                    <tr{% if key|check_difference:all_pgs %} class="highlight"{% endif %}>
+                        <td>{{ key }}</td>
+                        <td>{{ default.parameters|get_item:key }}</td>
+                        {% for pg in param_groups %}
+                        <td>{{ pg.parameters|get_item:key }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endwith %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        <div>
+    <div>
+</div>
+{% endblock body %}

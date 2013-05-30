@@ -17,7 +17,8 @@ DATABASES = {
 DEFAULT_FROM_EMAIL = ''
 
 ADMINS = (
-    # ('Name', 'email@exmaple.com')
+    # Don't forget the trailing comma after the last element
+    # ('Name', 'email@exmaple.com'),
 )
 
 #EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

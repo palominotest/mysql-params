@@ -78,7 +78,7 @@ class Command(BaseCommand):
                 pgs.append(pg)
         if len(names_list) == 1:
             pg = ParameterGroup.objects.find_last(names_list[0])
-            prev = ParameterGroup.objects.previous_version(pg)
+            prev = pg.previous_version
             if prev is not None and prev.status != 'deleted':
                 pgs.append(prev)
                 
@@ -115,7 +115,7 @@ class Command(BaseCommand):
                 dbis.append(dbi)
         if len(names_list) == 1:
             dbi = DBInstance.objects.find_last(names_list[0])
-            prev = DBInstance.objects.previous_version(dbi)
+            prev = dbi.previous_version
             if prev is not None and prev.status != 'deleted':
                 dbis.append(prev)
         

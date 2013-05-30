@@ -10,7 +10,32 @@ from jsonfield import JSONField
 import managers
 from utils import get_all_dbparameters
 
-class ParameterGroup(models.Model):
+class StatisticMixin(object):
+    
+    @property
+    def status(self):
+        status = self.__class__.objects.status(self)
+        return status
+        
+    @property
+    def previous_version(self):
+        prev = self.__class__.objects.previous_version(self)
+        return prev
+        
+    @property
+    def ordered_parameters(self):
+        if self.parameters is not None:
+            return collections.OrderedDict(sorted(self.parameters.items(), key=lambda t: t[0]))
+        else:
+            return {}
+            
+    @property
+    def params_changed_from_prev(self):
+        prev = self.previous_version
+        changed_parameters = self.__class__.objects.get_changed_parameters(prev, self)
+        return changed_parameters
+
+class ParameterGroup(models.Model, StatisticMixin):
     name = models.CharField(max_length=100)
     region = models.CharField(max_length=100, blank=True, null=True, default=None)
     family = models.CharField(max_length=100, blank=True, null=True, default=None)
@@ -39,20 +64,8 @@ class ParameterGroup(models.Model):
         else:
             pg_str += 'None'
         return pg_str
-        
-    @property
-    def status(self):
-        status = self.__class__.objects.status(self)
-        return status
-        
-    @property
-    def ordered_parameters(self):
-        if self.parameters is not None:
-            return collections.OrderedDict(sorted(self.parameters.items(), key=lambda t: t[0]))
-        else:
-            return {}
-        
-class DBInstance(models.Model):
+
+class DBInstance(models.Model, StatisticMixin):
     name = models.CharField(max_length=100)
     region = models.CharField(max_length=100, blank=True, null=True, default=None)
     endpoint = models.CharField(max_length=250, blank=True, null=True, default=None)
@@ -83,18 +96,6 @@ class DBInstance(models.Model):
             instance_str += 'None'
         return instance_str
         
-    @property
-    def status(self):
-        status = self.__class__.objects.status(self)
-        return status
-        
-    @property
-    def ordered_parameters(self):
-        if self.parameters is not None:
-            return collections.OrderedDict(sorted(self.parameters.items(), key=lambda t: t[0]))
-        else:
-            return {}
-        
     def get_difference_with_pg(self):
         conn = boto.rds.connect_to_region(self.region, aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                                             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
@@ -103,24 +104,35 @@ class DBInstance(models.Model):
         pg = get_all_dbparameters(pg)
         res = []
         for k in pg.keys():
+            if self.parameters is None:
+                break
             pg_val = pg.get(k)._value
-            if pg_val == '0':
-                pg_val = 'OFF'
-            if pg_val == '1':
-                pg_val = 'ON'
             if str(pg_val).endswith('/'):
                 pg_val = pg_val[:-1]
             if pg_val != None:
                 dbi_val = self.parameters.get(k)
+                copy_dbi_val = dbi_val
+                boolean = False
+                if str(dbi_val).upper() == 'OFF':
+                    dbi_val = '0'
+                    boolean = True
+                if str(dbi_val).upper() == 'ON':
+                    dbi_val = '1'
+                    boolean = True
                 if str(dbi_val).endswith('/'):
                     dbi_val = dbi_val[:-1]
                 regex = re.search('{.*}', pg_val)
                 # Don't process pg values with pseudo variables
                 if regex is None and pg_val != dbi_val:
+                    if boolean:
+                        if pg_val == '0':
+                            pg_val = 'OFF'
+                        if pg_val == '1':
+                            pg_val = 'ON'
                     res.append({
                         'key': k,
                         'pg_val': pg_val,
-                        'dbi_val': dbi_val,
+                        'dbi_val': copy_dbi_val,
                     })
         return res
         

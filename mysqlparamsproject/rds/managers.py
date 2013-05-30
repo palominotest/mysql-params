@@ -72,6 +72,8 @@ class CollectorMixin(object):
         
     def get_changed_parameters(self, old_instance, new_instance):
         res = []
+        if old_instance is None or new_instance is None:
+            return res
         old_params = old_instance.parameters
         new_params = new_instance.parameters
         if old_params is None or new_params is None:

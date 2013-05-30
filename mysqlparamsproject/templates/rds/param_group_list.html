@@ -2,16 +2,42 @@
 
 {% block title %}{{ block.super }} - Parameter Groups{% endblock title %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ STATIC_URL }}css/prettyCheckable.css">
+<link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap-select.css">
+{% endblock extra_css %}
+
 {% block hero %}<h1>Parameter Groups</h1>{% endblock hero %}
 
 {% block body %}
-
 <div class="container">
+    <div class="row alert alert-error hide" id="alert">
+        <div class="span12">
+            <p>
+                <strong>Please choose parameter groups to compare.</strong><br />
+                <em>Note: Choosing one parameter group will compare the instance to its previous version.</em>
+            </p>
+        </div>
+    </div> 
+    <div class="row">
+        <div class="span12">
+            <form  id="compare-form" class="form-horizontal" method="POST" action="{% url 'param_group_compare' %}">{% csrf_token %}
+                <label>Default Engine: </label>
+                <select  class="default-engine" name="engine">
+                    <option>MySQL 5.1</option>
+                    <option selected>MySQL 5.5</option>
+                </select><br />
+                <input type="hidden" id="object-ids" name="object-ids" />
+                <input type="submit" class="btn btn-primary" value="Compare Selected" />
+            </form>
+        </div>
+    </div>
     <div class="row">
         <div class="span12">
             <table class="table table-striped">
                 <thead>
                     <tr>
+                        <th>Add to comparison</th>
                         <th>Name</th>
                         <th>Region</th>
                         <th>Family</th>
@@ -21,6 +47,7 @@
                 <tbody>
                     {% for pg in param_groups %}
                     <tr>
+                        <td><input type="checkbox" class="rows" value="{{ pg.id }}" name="compare-selection" /></td>
                         <td><a href="{% url 'param_group_detail' pg.id %}">{{ pg.name }}</a></td>
                         <td>{{ pg.region }}</td>
                         <td>{{ pg.family }}</td>
@@ -34,3 +61,30 @@
 </div>
 {% endblock body %}
 
+{% block extra_js %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/prettyCheckable.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/bootstrap-select.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+
+    $('input.rows').prettyCheckable();
+    $('select.default-engine').selectpicker();
+    
+    $('#compare-form').submit(function(){
+        var ids = []
+        $('input.rows:checkbox:checked').each(function(index, element){
+            ids.push($(element).val());
+        });
+        if(ids.length == 0){
+            $('#alert').show();
+            return false;
+        }
+        else{
+            $('#compare-form #object-ids').val(ids.join());
+            return true;
+        }
+    });
+    
+});
+</script>
+{% endblock extra_js %}
