@@ -9,11 +9,13 @@ urlpatterns = patterns('',
         
         url(r'^param-group/$', views.ParameterGroupListView.as_view(), name='param_group_list'),
         url(r'^param-group/report/$', views.ParameterGroupReportView.as_view(), name='param_group_report'),
+        url(r'^param-group/report/download/$', views.ParameterGroupReportDownloadView.as_view(), name='param_group_report_download'),
         url(r'^param-group/compare/$', views.ParameterGroupCompareView.as_view(), name='param_group_compare'),
         url(r'^param-group/(?P<pk>\d+)/$', views.ParameterGroupDetailView.as_view(), name='param_group_detail'),
         
         url(r'^db-instance/$', views.DBInstanceListView.as_view(), name='db_instance_list'),
         url(r'^db-instance/report/$', views.DBInstanceReportView.as_view(), name='db_instance_report'),
+        url(r'^db-instance/report/download/$', views.DBInstanceReportDownloadView.as_view(), name='db_instance_report_download'),
         url(r'^db-instance/compare/$', views.DBInstanceCompareView.as_view(), name='db_instance_compare'),
         url(r'^db-instance/(?P<pk>\d+)/$', views.DBInstanceDetailView.as_view(), name='db_instance_detail'),
         

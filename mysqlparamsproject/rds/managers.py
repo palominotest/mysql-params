@@ -171,7 +171,7 @@ class ParameterGroupManager(models.Manager, ParameterGroupMixin):
         
     def changed(self, instance):
         last = self.previous_version(instance)
-        return last is None or self.deleted(instance) or last.parameters != instance.parameters
+        return last is None or self.deleted(instance) or len(self.get_changed_parameters(last, instance)) > 0
         
 class DBInstanceMixin(CollectorMixin):
     pass
@@ -204,4 +204,4 @@ class DBInstanceManager(models.Manager,DBInstanceMixin):
         
     def changed(self, instance):
         last = self.previous_version(instance)
-        return last is None or self.deleted(instance) or last.parameters != instance.parameters
+        return last is None or self.deleted(instance) or len(self.get_changed_parameters(last, instance)) > 0

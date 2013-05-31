@@ -170,7 +170,7 @@ class Command(BaseCommand):
                 new_pg.save()
                 cur_snapshot.add(new_pg.id)
                 logger.info('[new] %s' % (new_pg.name))
-            elif new_pg.parameters != old_pg.parameters:
+            elif len(ParameterGroup.objects.get_changed_parameters(old_pg, new_pg)) > 0:
                 new_pg.save()
                 self._snapshot_updated(cur_snapshot, new_pg.id, old_pg.id)
                 logger.info('[changed] %s' % (new_pg.name))
@@ -232,7 +232,7 @@ class Command(BaseCommand):
                 new_dbi.save()
                 cur_snapshot.add(new_dbi.id)
                 logger.info('[new] %s' % (new_dbi.name))
-            elif new_dbi.parameters != old_dbi.parameters:
+            elif len(DBInstance.objects.get_changed_parameters(old_dbi, new_dbi)) > 0:
                 new_dbi.save()
                 self._snapshot_updated(cur_snapshot, new_dbi.id, old_dbi.id)
                 logger.info('[changed] %s' % (new_dbi.name))

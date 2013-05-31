@@ -1,3 +1,7 @@
+import csv
+from datetime import datetime
+from itertools import groupby
+
 from django import http
 from django.shortcuts import get_object_or_404
 from django.views import generic
@@ -26,6 +30,28 @@ class ReportMixin(generic.ListView):
             if dtime is not None:
                 queryset = queryset.filter(run_time__gte=dtime)
         return queryset
+        
+    def get_context_data(self, **kwargs):
+        context = super(ReportMixin, self).get_context_data(**kwargs)
+        context['since'] = self.request.GET.get('since')
+        return context
+        
+class ReportDownloadMixin(ReportMixin):
+
+    def get_rows(self):
+        raise Exception, 'This is an abstract method.'
+        
+    def get_filename(self):
+        raise Exception, 'This is an abstract method.'
+    
+    def get(self, request, *args, **kwargs):
+        rows = self.get_rows()
+        response = http.HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % (self.get_filename()) 
+        writer = csv.writer(response)
+        for row in rows:
+            writer.writerow(row)
+        return response
 
 class ParameterGroupListView(ListMixin):
     template_name = 'rds/param_group_list.html'
@@ -52,10 +78,51 @@ class ParameterGroupReportView(ReportMixin):
     context_object_name = 'param_groups'
     model = ParameterGroup
     
+class ParameterGroupReportDownloadView(ReportDownloadMixin):
+    model = ParameterGroup
+    
+    def get_filename(self):
+        return 'param_group_report(%s).csv' % (datetime.now())
+    
+    def get_rows(self):
+        queryset = self.get_queryset()
+        rows = []
+        rows.append(['Reporting Parameter Groups:'])
+        empty = True
+        for run_time,group in groupby(queryset, key=lambda row: row.run_time):
+            empty = False
+            rows.append(['Status', 'Name', 'Family', 'Description', 'Created Time'])
+            for element in group:
+                rows.append([element.status, element.name, element.family, element.description, element.created_time])
+        if empty:
+            rows.append(['No changes.'])
+        return rows
+    
 class DBInstanceReportView(ReportMixin):
     template_name = 'rds/db_instance_report.html'
     context_object_name = 'db_instances'
     model = DBInstance
+    
+class DBInstanceReportDownloadView(ReportDownloadMixin):
+    model = DBInstance
+    
+    def get_filename(self):
+        return 'db_instance_report(%s).csv' % (datetime.now())
+    
+    def get_rows(self):
+        queryset = self.get_queryset()
+        rows = []
+        rows.append(['Reporting DB Instances:'])
+        empty = True
+        for run_time,group in groupby(queryset, key=lambda row: row.run_time):
+            empty = False
+            rows.append(['Status', 'Name', 'Region', 'Endpoint', 'Port', 'Parameter Group', 'Created Time'])
+            for element in group:
+                rows.append([element.status, element.name, element.region, element.endpoint, 
+                            element.port, element.parameter_group_name, element.created_time])
+        if empty:
+            rows.append(['No changes.'])
+        return rows
     
 class RecentChangesView(generic.TemplateView):
     template_name = 'rds/recent_changes.html'

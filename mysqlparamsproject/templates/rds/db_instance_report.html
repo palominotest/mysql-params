@@ -6,6 +6,7 @@
 
 {% block hero %}
 <h1>DB Instance Report</h1>
+<a class="btn btn-primary" href="{% url 'db_instance_report_download' %}{% if since %}?since={{ since }}{% endif %}">Download Report</a>
 {% endblock hero %}
 
 {% block body %}
