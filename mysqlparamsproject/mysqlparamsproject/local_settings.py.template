@@ -51,12 +51,6 @@ AWS_REGIONS = (
     #'ap-southeast-2'
 )
 
-# Dictionary of regions with db instances to be used in data collection
-AWS_DB_INSTANCES = {
-    'us-east-1': (
-        {
-            'name': 'db1',
-            'password': 'password'
-        },
-    ),
-}
+# MySQL Credentials to use for data collection
+RDS_MYSQL_USER = 'rodxavier'
+RDS_MYSQL_PASSWORD = 'rodxavierbondoc'

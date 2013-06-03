@@ -11,9 +11,10 @@ from django.db import transaction
 import boto.rds
 import MySQLdb
 import MySQLdb.cursors
+from MySQLdb import OperationalError
 
 from rds.models import CollectorRun, Snapshot, ParameterGroup, DBInstance
-from rds.utils import get_all_dbparameter_groups, get_all_dbparameters
+from rds.utils import get_all_dbinstances, get_all_dbparameter_groups, get_all_dbparameters
 
 logger = logging.getLogger('mysqlparams')
 
@@ -97,7 +98,7 @@ class Command(BaseCommand):
             
     def _find_in_instances(self, name, instances):
         for instance in instances:
-            if name == instance.get('name'):
+            if name == instance.id:
                 return instance
         return None
         
@@ -197,28 +198,29 @@ class Command(BaseCommand):
     def collect_db_instance(self, conn, run_time):
         region = conn.region.name
         logger.info('[db instances start]')
-        instances = settings.AWS_DB_INSTANCES.get(region, ())
+        instances = get_all_dbinstances(conn)
         prev_snapshot = set(DBInstance.objects.find_versions('db_instance', txn='latest').values_list('id', flat=True))
         cur_snapshot = prev_snapshot.copy()
         prev_version = DBInstance.objects.filter(id__in=prev_snapshot)
         for instance in instances:
-            name = instance.get('name')
-            passwd = instance.get('password')
-            db_instance = conn.get_all_dbinstances(name)[0]
-            endpoint = db_instance.endpoint
-            parameter_group = db_instance.parameter_group
+            endpoint = instance.endpoint
+            parameter_group = instance.parameter_group
             new_dbi = DBInstance(
-                name=db_instance.id,
+                name=instance.id,
                 region=region,
                 endpoint=endpoint[0],
                 port=endpoint[1],
                 parameter_group_name=parameter_group.name,
                 run_time=run_time
             )
-            mysql_conn = MySQLdb.connect(host=new_dbi.endpoint, port=new_dbi.port,
-                                        user=db_instance.master_username,
-                                        passwd=passwd,
-                                        cursorclass=MySQLdb.cursors.DictCursor)
+            try:
+                mysql_conn = MySQLdb.connect(host=new_dbi.endpoint, port=new_dbi.port,
+                                            user=settings.RDS_MYSQL_USER,
+                                            passwd=settings.RDS_MYSQL_PASSWORD,
+                                            cursorclass=MySQLdb.cursors.DictCursor)
+            except OperationalError, e:
+                logger.error('[error] Unable to connect to RDS Instance %s' % (instance.id))
+                continue
             cursor = mysql_conn.cursor()
             cursor.execute('SHOW GLOBAL VARIABLES')
             rows = cursor.fetchall()

@@ -1,6 +1,18 @@
 import re
 from datetime import datetime, timedelta
 
+def get_all_dbinstances(conn):
+    dbis = []
+    marker = True
+    while True:
+        request_dbis = conn.get_all_dbinstances(marker=marker)
+        dbis.extend(request_dbis)
+        if hasattr(request_dbis, 'Marker'):
+            marker = getattr(request_dbis, 'Marker')
+        else:
+            break
+    return dbis
+
 def get_all_dbparameter_groups(conn):
     pgs = []
     marker = ''
