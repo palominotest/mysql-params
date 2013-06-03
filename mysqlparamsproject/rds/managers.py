@@ -82,7 +82,8 @@ class CollectorMixin(object):
         for k in keys:
             old_val = old_instance.parameters.get(k)
             new_val = new_instance.parameters.get(k)
-            if old_val != new_val:
+            if (old_val != new_val) or (old_val == new_val and \
+                    (k not in old_instance.parameters.keys() or k not in new_instance.parameters.keys())):
                 res.append({
                     'key': k,
                     'old_val': old_val,
