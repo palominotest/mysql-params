@@ -36,6 +36,7 @@ EMAIL_USE_TLS = ''
 SENDMAIL_PATH = '/usr/sbin/sendmail'
 
 # AWS Settings
+# AWS credentials should be for a user that has limited privileges (read-only)
 AWS_ACCESS_KEY_ID = ''
 AWS_SECRET_ACCESS_KEY = ''
 

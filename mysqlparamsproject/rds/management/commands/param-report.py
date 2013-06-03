@@ -13,6 +13,7 @@ from django.core.mail import send_mail
 from texttable import Texttable
 
 from rds.models import CollectorRun, ParameterGroup, DBInstance
+from rds.utils import get_needs_restart
 
 logger = logging.getLogger('mysqlparams')
 
@@ -86,25 +87,47 @@ class Command(BaseCommand):
             
             pg_query = pg_query.order_by('-run_time')
             dbi_query = dbi_query.order_by('-run_time')
-                
-            if stat is None:
-                lines = self.get_lines(pg_query=pg_query, dbi_query=dbi_query, output=output)
-            elif stat == 'parameter_group':
-                lines = self.get_lines(pg_query=pg_query, output=output)
-            elif stat == 'db_instance':
-                lines = self.get_lines(dbi_query=dbi_query, output=output)
             
-            res = '\n'.join(lines)    
-            if output == 'text':
-                print res
-            elif output == 'email':
-                subject = '%s Report' % (settings.EMAIL_SUBJECT_PREFIX)
-                body = res
-                from_email = settings.DEFAULT_FROM_EMAIL
-                to_emails = []
-                for admin in settings.ADMINS:
-                    to_emails.append(admin[1])
-                send_mail(subject, body, from_email, to_emails, fail_silently=False)
+            if output in ('text', 'email',):    
+                if stat is None:
+                    lines = self.get_lines(pg_query=pg_query, dbi_query=dbi_query, output=output)
+                elif stat == 'parameter_group':
+                    lines = self.get_lines(pg_query=pg_query, output=output)
+                elif stat == 'db_instance':
+                    lines = self.get_lines(dbi_query=dbi_query, output=output)
+                
+                res = '\n'.join(lines)    
+                if output == 'text':
+                    print res
+                elif output == 'email':
+                    subject = '%s Report' % (settings.EMAIL_SUBJECT_PREFIX)
+                    body = res
+                    from_email = settings.DEFAULT_FROM_EMAIL
+                    to_emails = []
+                    for admin in settings.ADMINS:
+                        to_emails.append(admin[1])
+                    send_mail(subject, body, from_email, to_emails, fail_silently=False)
+                sys.exit(0)
+            if output == 'nagios':
+                dbi_query = DBInstance.objects.find_versions('db_instance', txn='latest')
+                needs_restart = get_needs_restart(dbi_query)
+                res = []
+                res.append('The following instances may need to be restarted.')
+                if len(needs_restart) > 0:
+                    for i,dbi_tuple in enumerate(needs_restart):
+                        dbi = dbi_tuple[0]
+                        diff = dbi_tuple[1]
+                        res.append('%d. Region: %s Name: %s Endpoint: %s Port: %s Parameter Group: %s' % ((i+1), 
+                                    dbi.region, dbi.name, dbi.endpoint, dbi.port, dbi.parameter_group_name))
+                        res.append('\tParameter Differences:')
+                        for param in diff:
+                            res.append("\t- %s: Parameter Group Value: %s, DB Instance Value: %s" % (param.get('key'), param.get('pg_val'), param.get('dbi_val')))
+                    print '\n'.join(res)
+                    sys.exit(1)     #Nagios WARNING
+                else:
+                    res.append('No instance needs to be restarted.')
+                    print '\n'.join(res)
+                    sys.exit(0)     #Nagios OK
         except Exception, e:
             tb = traceback.format_exc()
             logger.error(tb)
