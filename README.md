@@ -89,6 +89,11 @@ Utility for tracking mysql parameters
         
         # Send email report
         ./manage.py param-report --since 24h -o email
+        
+        # Nagios output mode
+        # Ignores the --since parameter.
+        # This will return the Nagios exit code 1(Warning) if any DB instance needs to be restarted. Otherwise, returns 0(Ok).
+        ./manage.py param-report -o nagios
 
 3. param-check - Sends email alert for the previous data collection
 
