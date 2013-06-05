@@ -215,8 +215,8 @@ class Command(BaseCommand):
             )
             try:
                 mysql_conn = MySQLdb.connect(host=new_dbi.endpoint, port=new_dbi.port,
-                                            user=settings.RDS_MYSQL_USER,
-                                            passwd=settings.RDS_MYSQL_PASSWORD,
+                                            user=settings.MYSQL_USER,
+                                            passwd=settings.MYSQL_PASSWORD,
                                             cursorclass=MySQLdb.cursors.DictCursor)
             except OperationalError, e:
                 logger.error('[error] Unable to connect to RDS Instance %s' % (instance.id))

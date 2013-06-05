@@ -53,5 +53,5 @@ AWS_REGIONS = (
 )
 
 # MySQL Credentials to use for data collection
-RDS_MYSQL_USER = 'rodxavier'
-RDS_MYSQL_PASSWORD = 'rodxavierbondoc'
+MYSQL_USER = ''
+MYSQL_PASSWORD = ''
