@@ -49,6 +49,13 @@ class Command(BaseCommand):
     )
 
     def handle(self, *args, **options):
+        if options.get('list_stats'):
+            print 'Available Statistics:'
+            collector_runs = CollectorRun.objects.all()
+            for i,collector_run in enumerate(collector_runs):
+               print '%d. %s' % (i+1, collector_run.collector)
+            sys.exit(0)
+    
         find_type = 'normal'
         sql_conditions = {}
         try:
