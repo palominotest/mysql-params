@@ -161,6 +161,7 @@ class Command(BaseCommand):
                     lines.append('-- %s' % (run_time))
                     for element in group:
                         lines.append('[%s] Family: %s Name: %s' % (element.status, element.family, element.name))
+                    lines.append('')
             if empty:
                 lines.append('No changes.')
         if dbi_query is not None:
@@ -185,6 +186,7 @@ class Command(BaseCommand):
                     for element in group:
                         lines.append('[%s] Region: %s Name: %s Endpoint: %s Port: %s' % (element.status, element.region, 
                                                                             element.name, element.endpoint, element.port))
+                    lines.append('')
             if empty:
                 lines.append('No changes.')
         return lines

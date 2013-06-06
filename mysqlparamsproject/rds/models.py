@@ -103,14 +103,14 @@ class DBInstance(models.Model, StatisticMixin):
         pg = conn.get_all_dbparameter_groups(self.parameter_group_name)[0]
         pg = get_all_dbparameters(pg)
         res = []
-        for k in pg.keys():
+        for p in sorted(pg.modifiable()):
             if self.parameters is None:
                 break
-            pg_val = pg.get(k)._value
+            pg_val = p._value
             if str(pg_val).endswith('/'):
                 pg_val = pg_val[:-1]
             if pg_val != None:
-                dbi_val = self.parameters.get(k)
+                dbi_val = self.parameters.get(p.name)
                 copy_dbi_val = dbi_val
                 boolean = False
                 if str(dbi_val).upper() == 'OFF':
@@ -130,7 +130,7 @@ class DBInstance(models.Model, StatisticMixin):
                         if pg_val == '1':
                             pg_val = 'ON'
                     res.append({
-                        'key': k,
+                        'key': p.name,
                         'pg_val': pg_val,
                         'dbi_val': copy_dbi_val,
                     })

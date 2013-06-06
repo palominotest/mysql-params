@@ -162,8 +162,8 @@ class Command(BaseCommand):
                 run_time=run_time,
             )
             parameters = {}
-            for k in pg.keys():
-                parameters[k] = pg.get(k)._value
+            for p in sorted(pg.modifiable()):
+                parameters[p.name] = p._value
             new_pg.parameters = parameters
             old_pg = ParameterGroup.objects.find_last(new_pg.name)
             

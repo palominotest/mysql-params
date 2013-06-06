@@ -19,9 +19,10 @@ class Command(BaseCommand):
             dbi_collector = CollectorRun.objects.get(collector='db_instance')
             pgs = ParameterGroup.objects.filter(run_time=pg_collector.last_run)
             dbis = DBInstance.objects.filter(run_time=dbi_collector.last_run)
+            dbi_query = DBInstance.objects.find_versions('db_instance', txn='latest')
             pgs_dict = get_sorted_dict(pgs)
             dbis_dict = get_sorted_dict(dbis)
-            needs_restart = get_needs_restart(dbis)
+            needs_restart = get_needs_restart(dbi_query)
             res = []
                     
             res.append('Parameter Groups:')
