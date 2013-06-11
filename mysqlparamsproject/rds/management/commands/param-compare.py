@@ -5,6 +5,7 @@ from optparse import make_option
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from colorama import init, Fore
 from texttable import Texttable
 
 from rds.models import CollectorRun, ParameterGroup, DBInstance
@@ -64,6 +65,18 @@ class Command(BaseCommand):
             tb = traceback.format_exc()
             logger.error(tb)
             
+    def _print(self, lines, highlight_keys=[]):
+        init(autoreset=True)
+        print lines[0]                  # Print header
+        lines = lines[1:]               # Remove header
+        for line in lines:
+            tokens = line.split()
+            k = tokens[0]
+            if k in highlight_keys:
+                print Fore.RED + line
+            else:
+                print line
+    
     def do_compare_parameter_groups(self, names, engine):
         names_list = names.split(',')
         if engine == 'mysql5.1':
@@ -84,7 +97,7 @@ class Command(BaseCommand):
                 
         if len(pgs) <= 1:
             raise Exception, 'No comparisons can be made.'
-            
+        
         table = Texttable(max_width=200)
         table.set_deco(Texttable.HEADER)
         rows = []
@@ -95,16 +108,26 @@ class Command(BaseCommand):
             header.append('ID: %d - %s' % (pg.id, pg.name))
         rows.append(header)
         
+        highlight_keys = []
         for k in sorted(default_pg.parameters.keys()):
             row = []
             row.append(k)
-            row.append(default_pg.parameters.get(k))
+            vals = [str(default_pg.parameters.get(k))]
             for pg in pgs:
-                row.append(pg.parameters.get(k))
+                vals.append(str(pg.parameters.get(k)))
+                
+            if len(set(vals)) > 1:
+                highlight_keys.append(k)
+            
+            row.append(str(default_pg.parameters.get(k)))
+            for pg in pgs:
+                row.append(str(pg.parameters.get(k)))
             rows.append(row)
         
         table.add_rows(rows)
-        print table.draw()
+        table_str = table.draw()
+        lines = table_str.split('\n')
+        self._print(lines, highlight_keys)
         
     def do_compare_db_instances(self, names):
         names_list = names.split(',')
@@ -130,17 +153,26 @@ class Command(BaseCommand):
         for dbi in dbis:
             header.append('ID: %d - %s' % (dbi.id, dbi.name))
         rows.append(header)
+        
         keys = []
+        highlight_keys = []
         for dbi in dbis:
             keys.extend(dbi.parameters.keys())
         keys = set(keys)
         for k in sorted(keys):
             row = []
             row.append(k)
-            different = False
+            vals = []
             for dbi in dbis:
-                row.append(dbi.parameters.get(k))
+                row.append(str(dbi.parameters.get(k)))
+                vals.append(str(dbi.parameters.get(k)))
+                
+            if len(set(vals)) > 1:
+                highlight_keys.append(k)
+                
             rows.append(row)
         
         table.add_rows(rows)
-        print table.draw()
+        table_str = table.draw()
+        lines = table_str.split('\n')
+        self._print(lines, highlight_keys)

@@ -5,3 +5,4 @@ argparse==1.2.1
 -e git+https://github.com/rbondoc-palominodb/boto.git@68365dafdeb88f4f4aab06bf6f4e8f11064f169f#egg=boto-dev
 -e git+https://github.com/bradjasper/django-jsonfield.git@49e00d20c6ee9f10e14286e8d709b25f271d008f#egg=jsonfield-dev
 texttable==0.8.1
+colorama==0.2.5
