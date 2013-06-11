@@ -119,8 +119,8 @@ class Command(BaseCommand):
                 dbi_query = DBInstance.objects.find_versions('db_instance', txn='latest')
                 needs_restart = get_needs_restart(dbi_query)
                 res = []
-                res.append('The following instances may need to be restarted.')
                 if len(needs_restart) > 0:
+                    res.append('The following instances may need to be restarted.')
                     for i,dbi_tuple in enumerate(needs_restart):
                         dbi = dbi_tuple[0]
                         diff = dbi_tuple[1]
@@ -132,7 +132,7 @@ class Command(BaseCommand):
                     print '\n'.join(res)
                     sys.exit(1)     #Nagios WARNING
                 else:
-                    res.append('No instance needs to be restarted.')
+                    res.append('OK')
                     print '\n'.join(res)
                     sys.exit(0)     #Nagios OK
         except Exception, e:
