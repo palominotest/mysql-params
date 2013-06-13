@@ -6,7 +6,7 @@ from django import http
 from django.shortcuts import get_object_or_404
 from django.views import generic
 
-from rds.models import CollectorRun, ParameterGroup, DBInstance
+from rds.models import CollectorRun, ParameterGroup, DBInstance, ConfigFile
 from rds.utils import str_to_datetime, get_sorted_dict, get_needs_restart
 
 class ListMixin(generic.ListView):
@@ -62,6 +62,11 @@ class DBInstanceListView(ListMixin):
     template_name = 'rds/db_instance_list.html'
     context_object_name = 'db_instances'
     model = DBInstance
+    
+class ConfigFileListView(ListMixin):
+    template_name = 'rds/config_file_list.html'
+    context_object_name = 'config_files'
+    model = ConfigFile
         
 class ParameterGroupDetailView(generic.DetailView):
     template_name = 'rds/param_group_detail.html'
@@ -72,6 +77,11 @@ class DBInstanceDetailView(generic.DetailView):
     template_name = 'rds/db_instance_detail.html'
     context_object_name = 'db_instance'
     model = DBInstance
+    
+class ConfigFileDetailView(generic.DetailView):
+    template_name = 'rds/config_file_detail.html'
+    context_object_name = 'config_file'
+    model = ConfigFile
     
 class ParameterGroupReportView(ReportMixin):
     template_name = 'rds/param_group_report.html'
@@ -116,10 +126,35 @@ class DBInstanceReportDownloadView(ReportDownloadMixin):
         empty = True
         for run_time,group in groupby(queryset, key=lambda row: row.run_time):
             empty = False
-            rows.append(['Status', 'Name', 'Region', 'Endpoint', 'Port', 'Parameter Group', 'Created Time'])
+            rows.append(['Status', 'Name', 'Type', 'Region', 'Endpoint', 'Port', 'Parameter Group', 'Created Time'])
             for element in group:
-                rows.append([element.status, element.name, element.region, element.endpoint, 
+                rows.append([element.status, element.name, element.db_instance_type, element.region, element.endpoint, 
                             element.port, element.parameter_group_name, element.created_time])
+        if empty:
+            rows.append(['No changes.'])
+        return rows
+
+class ConfigFileReportView(ReportMixin):
+    template_name = 'rds/config_file_report.html'
+    context_object_name = 'config_files'
+    model = ConfigFile
+    
+class ConfigFileReportDownloadView(ReportDownloadMixin):
+    model = ConfigFile
+    
+    def get_filename(self):
+        return 'config_file_report(%s).csv' % (datetime.now())
+    
+    def get_rows(self):
+        queryset = self.get_queryset()
+        rows = []
+        rows.append(['Reporting Config Files:'])
+        empty = True
+        for run_time,group in groupby(queryset, key=lambda row: row.run_time):
+            empty = False
+            rows.append(['Status', 'Name', 'Created Time'])
+            for element in group:
+                rows.append([element.status, element.name, element.created_time])
         if empty:
             rows.append(['No changes.'])
         return rows
@@ -131,14 +166,18 @@ class RecentChangesView(generic.TemplateView):
         context = super(RecentChangesView, self).get_context_data(**kwargs)
         pg_collector = CollectorRun.objects.get(collector='parameter_group')
         dbi_collector = CollectorRun.objects.get(collector='db_instance')
+        cf_collector = CollectorRun.objects.get(collector='config_file')
         pgs = ParameterGroup.objects.filter(run_time=pg_collector.last_run)
         dbis = DBInstance.objects.filter(run_time=dbi_collector.last_run)
+        cfs = ConfigFile.objects.filter(run_time=cf_collector.last_run)
         dbi_query = DBInstance.objects.find_versions('db_instance', txn='latest')
         pgs_dict = get_sorted_dict(pgs)
         dbis_dict = get_sorted_dict(dbis)
+        cfs_dict = get_sorted_dict(cfs)
         needs_restart = get_needs_restart(dbis)
         context['pgs_dict'] = pgs_dict
         context['dbis_dict'] = dbis_dict
+        context['cfs_dict'] = cfs_dict
         context['needs_restart'] = get_needs_restart(dbi_query)
         return context
         
@@ -161,7 +200,8 @@ class ParameterGroupCompareView(generic.TemplateView):
             pg = pgs[0]
             prev = pg.previous_version
             pgs = list(pgs)
-            pgs.append(prev)
+            if prev is not None:
+                pgs.append(prev)
         keys = sorted(default_pg.parameters.keys())
         context['keys'] = keys
         context['default'] = default_pg
@@ -187,7 +227,8 @@ class DBInstanceCompareView(generic.TemplateView):
             dbi = dbis[0]
             prev = dbi.previous_version
             dbis = list(dbis)
-            dbis.append(prev)
+            if prev is not None:
+                dbis.append(prev)
         keys = []
         for dbi in dbis:
             if dbi.parameters is not None:
@@ -199,6 +240,36 @@ class DBInstanceCompareView(generic.TemplateView):
     
     def post(self, request, *args, **kwargs):
         return super(DBInstanceCompareView, self).get(request, *args, **kwargs)
+        
+    def get(self, request, *args, **kwargs):
+        return http.HttpResponseNotAllowed('GET requests are not allowed for this operation.')
+        
+class ConfigFileCompareView(generic.TemplateView):
+    template_name = 'rds/config_file_compare.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super(ConfigFileCompareView, self).get_context_data(**kwargs)
+        request = self.request
+        object_ids = request.REQUEST.get('object-ids', '')
+        object_ids = object_ids.split(',')
+        cfs = ConfigFile.objects.filter(id__in=object_ids)
+        if cfs.count() == 1:
+            cf = cfs[0]
+            prev = cf.previous_version
+            cfs = list(cfs)
+            if prev is not None:
+                cfs.append(prev)
+        keys = []
+        for cf in cfs:
+            if cf.parameters is not None:
+                keys.extend(cf.parameters.keys())
+        keys = sorted(set(keys))
+        context['keys'] = keys
+        context['config_files'] = cfs
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        return super(ConfigFileCompareView, self).get(request, *args, **kwargs)
         
     def get(self, request, *args, **kwargs):
         return http.HttpResponseNotAllowed('GET requests are not allowed for this operation.')

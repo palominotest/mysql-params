@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ block.super }} | Config File Report
+{% endblock title %}
+
+{% block hero %}
+<h1>Config File Report</h1>
+<a class="btn btn-primary" href="{% url 'config_file_report_download' %}{% if since %}?since={{ since }}{% endif %}">Download Report</a>
+{% endblock hero %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="span5">
+            {% include "rds/since_form.html" %}
+        </div>
+    </div>
+    <div class="row">
+        {% regroup config_files by run_time as cf_group %}
+        <div class="span12">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Name</th>
+                        <th>Created Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for group in cf_group %}
+                    <tr>
+                        <td colspan="3"><strong>{{ group.grouper }}</strong></td>
+                    </tr>
+                    {% for cf in group.list %}
+                    <tr>
+                        <td><strong>{{ cf.status }}</strong></td>
+                        <td><a href="{% url 'config_file_detail' cf.id %}">{{ cf.name }}</a></td>
+                        <td>{{ cf.created_time }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="6"><strong>No reports available.</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock body %}

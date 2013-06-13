@@ -19,6 +19,12 @@ urlpatterns = patterns('',
         url(r'^db-instance/compare/$', views.DBInstanceCompareView.as_view(), name='db_instance_compare'),
         url(r'^db-instance/(?P<pk>\d+)/$', views.DBInstanceDetailView.as_view(), name='db_instance_detail'),
         
+        url(r'^config-file/$', views.ConfigFileListView.as_view(), name='config_file_list'),
+        url(r'^config-file/report/$', views.ConfigFileReportView.as_view(), name='config_file_report'),
+        url(r'^config-file/report/download/$', views.ConfigFileReportDownloadView.as_view(), name='config_file_report_download'),
+        url(r'^config-file/compare/$', views.ConfigFileCompareView.as_view(), name='config_file_compare'),
+        url(r'^config-file/(?P<pk>\d+)/$', views.ConfigFileDetailView.as_view(), name='config_file_detail'),
+        
         url(r'^recent-changes/$', views.RecentChangesView.as_view(), name='recent_changes'),
         
 )

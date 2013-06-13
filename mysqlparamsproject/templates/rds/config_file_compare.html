@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load rds_tags %}
+
+{% block title %}
+{{ block.super }} | Compare Config Files
+{% endblock title %}
+
+{% block hero %}
+<h1>Compare Config Files</h1>
+{% endblock hero %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="span12">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Keys</th>
+                        {% for cf in config_files %}
+                        <th>ID: {{ cf.id }} - {{ cf.name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key in keys %}
+                    <tr{% if key|check_difference:config_files %} class="highlight"{% endif %}>
+                        <td>{{ key }}</td>
+                        {% for cf in config_files %}
+                        <td>{{ cf.parameters|get_item:key }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        <div>
+    <div>
+</div>
+{% endblock body %}

@@ -12,7 +12,7 @@ from django.core.mail import send_mail
 
 from texttable import Texttable
 
-from rds.models import CollectorRun, ParameterGroup, DBInstance
+from rds.models import CollectorRun, ParameterGroup, DBInstance, ConfigFile
 from rds.utils import get_needs_restart
 
 logger = logging.getLogger('mysqlparams')
@@ -84,24 +84,31 @@ class Command(BaseCommand):
             if find_type == 'normal':
                 pg_query = ParameterGroup.objects.all()
                 dbi_query = DBInstance.objects.all()
+                cf_query = ConfigFile.objects.all()
             else:
                 pg_query = ParameterGroup.objects.find_versions('parameter_group', txn='latest')
                 dbi_query = DBInstance.objects.find_versions('db_instance', txn='latest')
+                cf_query = ConfigFile.objects.find_versions('config_file', txn='latest')
                 
             if sql_conditions.get('since') is not None:
                 pg_query = pg_query.filter(run_time__gte=sql_conditions.get('since'))
                 dbi_query = dbi_query.filter(run_time__gte=sql_conditions.get('since'))
+                cf_query = cf_query.filter(run_time__gte=sql_conditions.get('since'))
             
             pg_query = pg_query.order_by('-run_time')
             dbi_query = dbi_query.order_by('-run_time')
+            cf_query = cf_query.order_by('-run_time')
             
-            if output in ('text', 'email',):    
+            if output in ('text', 'email',):
+                lines = []    
                 if stat is None:
-                    lines = self.get_lines(pg_query=pg_query, dbi_query=dbi_query, output=output)
+                    lines = self.get_lines(pg_query=pg_query, dbi_query=dbi_query, cf_query=cf_query, output=output)
                 elif stat == 'parameter_group':
                     lines = self.get_lines(pg_query=pg_query, output=output)
                 elif stat == 'db_instance':
                     lines = self.get_lines(dbi_query=dbi_query, output=output)
+                elif stat == 'config_file':
+                    lines = self.get_lines(cf_query=cf_query, output=output)
                 
                 res = '\n'.join(lines)    
                 if output == 'text':
@@ -128,7 +135,7 @@ class Command(BaseCommand):
                                     dbi.region, dbi.name, dbi.endpoint, dbi.port, dbi.parameter_group_name))
                         res.append('\tParameter Differences:')
                         for param in diff:
-                            res.append("\t- %s: Parameter Group Value: %s, DB Instance Value: %s" % (param.get('key'), param.get('pg_val'), param.get('dbi_val')))
+                            res.append("\t- %s: Parameter Group/Config File Value: %s, DB Instance Value: %s" % (param.get('key'), param.get('val'), param.get('dbi_val')))
                     print '\n'.join(res)
                     sys.exit(1)     #Nagios WARNING
                 else:
@@ -139,7 +146,7 @@ class Command(BaseCommand):
             tb = traceback.format_exc()
             logger.error(tb)
             
-    def get_lines(self, pg_query=None, dbi_query=None, output='text'):
+    def get_lines(self, pg_query=None, dbi_query=None, cf_query=None, output='text'):
         lines = []
         if pg_query is not None:
             lines.append('Reporting Parameter Groups:')
@@ -171,12 +178,12 @@ class Command(BaseCommand):
                 empty = False
                 if output == 'text':
                     table = Texttable()
-                    table.set_cols_width([10, 15, 10, 30, 5, '15', 20])
+                    table.set_cols_width([10, 5, 15, 10, 30, 5, '15', 20])
                     table.set_deco(Texttable.HEADER)
-                    rows = [['Status', 'Name', 'Region', 'Endpoint', 'Port', 'Parameter Group', 'Created Time']]
-                    lines.append('-- %s %s' % (run_time, ('-'*100)))
+                    rows = [['Status', 'Type', 'Name', 'Region', 'Endpoint', 'Port', 'Parameter Group', 'Created Time']]
+                    lines.append('-- %s %s' % (run_time, ('-'*108)))
                     for element in group:
-                        rows.append([element.status, element.name, element.region, element.endpoint, 
+                        rows.append([element.status, element.db_instance_type, element.name, element.region, element.endpoint, 
                                     element.port, element.parameter_group_name, element.created_time])
                     table.add_rows(rows)
                     lines.append(table.draw())
@@ -186,6 +193,29 @@ class Command(BaseCommand):
                     for element in group:
                         lines.append('[%s] Region: %s Name: %s Endpoint: %s Port: %s' % (element.status, element.region, 
                                                                             element.name, element.endpoint, element.port))
+                    lines.append('')
+            if empty:
+                lines.append('No changes.')
+        if cf_query is not None:
+            lines.append('Reporting Config Files:')
+            empty = True
+            for run_time, group in groupby(cf_query, key=lambda row: row.run_time):
+                empty = False
+                if output == 'text':
+                    table = Texttable()
+                    table.set_cols_width([10, 30, 20])
+                    table.set_deco(Texttable.HEADER)
+                    rows = [['Statuus', 'Name', 'Created Time']]
+                    lines.append('-- %s %s' % (run_time, ('-'*43)))
+                    for element in group:
+                        rows.append([element.status, element.name, element.created_time])
+                    table.add_rows(rows)
+                    lines.append(table.draw())
+                    lines.append('')
+                elif output == 'email':
+                    lines.append('-- %s' % (run_time))
+                    for element in group:
+                        lines.append('[%s] Name: %s' % (element.status, element.name))
                     lines.append('')
             if empty:
                 lines.append('No changes.')

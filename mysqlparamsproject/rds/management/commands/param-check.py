@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.core.mail import send_mail
 
-from rds.models import CollectorRun, ParameterGroup, DBInstance
+from rds.models import CollectorRun, ParameterGroup, DBInstance, ConfigFile
 from rds.utils import get_sorted_dict, get_needs_restart
 
 logger = logging.getLogger('mysqlparams')
@@ -17,11 +17,14 @@ class Command(BaseCommand):
         try:
             pg_collector = CollectorRun.objects.get(collector='parameter_group')
             dbi_collector = CollectorRun.objects.get(collector='db_instance')
+            cf_collector = CollectorRun.objects.get(collector='config_file')
             pgs = ParameterGroup.objects.filter(run_time=pg_collector.last_run)
             dbis = DBInstance.objects.filter(run_time=dbi_collector.last_run)
+            cfs = ConfigFile.objects.filter(run_time=cf_collector.last_run)
             dbi_query = DBInstance.objects.find_versions('db_instance', txn='latest')
             pgs_dict = get_sorted_dict(pgs)
             dbis_dict = get_sorted_dict(dbis)
+            cfs_dict = get_sorted_dict(cfs)
             needs_restart = get_needs_restart(dbi_query)
             res = []
                     
@@ -100,9 +103,43 @@ class Command(BaseCommand):
                                 dbi.region, dbi.name, dbi.endpoint, dbi.port, dbi.parameter_group_name))
                     res.append('\tParameter Differences:')
                     for param in diff:
-                        res.append("\t- %s: Parameter Group Value: %s, DB Instance Value: %s" % (param.get('key'), param.get('pg_val'), param.get('dbi_val')))
+                        res.append("\t- %s: Parameter Group/Config File Value: %s, DB Instance Value: %s" % (param.get('key'), param.get('val'), param.get('dbi_val')))
             else:
                 res.append('No instance needs to be restarted.')
+            res.append('')
+            
+            res.append('Config Files:')
+            res.append('')
+            res.append('New:')
+            new_cfs = cfs_dict.get('new', [])
+            if len(new_cfs) == 0:
+                res.append('No new config files.')
+            else:
+                for i,cf in enumerate(new_cfs):
+                    res.append('%d. Name: %s' % ((i+1), cf.name))
+            res.append('')
+            res.append('Deleted:')
+            deleted_cfs = cfs_dict.get('deleted', [])
+            if len(deleted_cfs) == 0:
+                res.append('No deleted config files.')
+            else:
+                for i,cf in enumerate(deleted_cfs):
+                    res.append('%d. Name: %s' % ((i+1), cf.name))
+            res.append('')
+            res.append('Changed:')
+            changed_cfs = cfs_dict.get('changed', [])
+            if len(changed_cfs) == 0:
+                res.append('No changed config files.')
+            else:
+                for i,cf in enumerate(changed_cfs):
+                    prev = ConfigFile.objects.previous_version(cf)
+                    res.append('%d. Name: %s' % ((i+1), cf.name))
+                    res.append('\tOLD ID: %d, NEW ID: %d' % (prev.id, cf.id))
+                    res.append('\tChanged Parameters:')
+                    changed_params = ConfigFile.objects.get_changed_parameters(prev, cf)
+                    for param in changed_params:
+                        res.append("\t- %s: %s -> %s" % (param.get('key'), param.get('old_val'), param.get('new_val')))
+            res.append('')            
             
             subject = '%s Change Alert' % (settings.EMAIL_SUBJECT_PREFIX)
             body = '\n'.join(res)

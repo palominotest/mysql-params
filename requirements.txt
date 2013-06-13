@@ -6,3 +6,4 @@ argparse==1.2.1
 -e git+https://github.com/bradjasper/django-jsonfield.git@49e00d20c6ee9f10e14286e8d709b25f271d008f#egg=jsonfield-dev
 texttable==0.8.1
 colorama==0.2.5
+paramiko==1.10.1

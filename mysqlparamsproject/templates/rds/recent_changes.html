@@ -92,7 +92,7 @@
                         {% for param in dbi.1 %}
                         <li>
                             {{ param.key }}:<br />
-                            Parameter Group Value: {{ param.pg_val }}<br />
+                            Parameter Group/Config File Value: {{ param.val }}<br />
                             DB Instance Value: {{ param.dbi_val }}
                         </li>
                         {% endfor %}
@@ -100,6 +100,44 @@
                 </li>
                 {% empty %}
                 <li>No db instances needs to be restarted.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span6">
+            <h3>Config Files:</h3>
+            <h4>New:</h4>
+            <ul>
+                {% for cf in cfs_dict.new %}
+                <li><a href="{% url 'config_file_detail' cf.id %}">{{ cf.name }}</a></li>
+                {% empty %}
+                <li>No new config files.</li>
+                {% endfor %}
+            </ul>
+            <h4>Deleted:</h4>
+            <ul>
+                {% for cf in cfs_dict.deleted %}
+                <li>{{ cf.name }}</li>
+                {% empty %}
+                <li>No deleted config files.</li>
+                {% endfor %}
+            </ul>
+            <h4>Changed:</h4>
+            <ul>
+                {% for cf in cfs_dict.changed %}
+                <li>
+                    <a href="{% url 'config_file_detail' cf.id %}">{{ cf.name }}</a><br/>
+                    <span>OLD ID: {{ cf.previous_version.id }} NEW ID: {{ cf.id }}</span><br />
+                    <span>Changed Parameters:</span>
+                    <ul>
+                        {% for param in cf.params_changed_from_prev %}
+                        <li>{{ param.key }}: {{ param.old_val }} -> {{ param.new_val }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% empty %}
+                <li>No changed config files.</li>
                 {% endfor %}
             </ul>
         </div>

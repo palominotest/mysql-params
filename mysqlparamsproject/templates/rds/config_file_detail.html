@@ -1,16 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}{{ block.super }} - DB Instances{% endblock title %}
+{% block title %}{{ block.super }} - Config Files{% endblock title %}
 
 {% block hero %}
-<h2>DB Instance: {{ db_instance.name }}</h2>
-<p>
-Type: {{ db_instance.db_instance_type }}<br />
-Region: {{ db_instance.region }}<br />
-Endpoint: {{ db_instance.endpoint }}<br />
-Port: {{ db_instance.port }}<br />
-Parameter Group: {{ db_instance.parameter_group_name }}<br />
-</p>
+<h2>Config File: {{ config_file.name }}</h2>
 {% endblock hero %}
 
 {% block body %}
@@ -30,7 +23,7 @@ Parameter Group: {{ db_instance.parameter_group_name }}<br />
                     </tr>
                 </thead>
                 <tbody>
-                    {% for k,v in db_instance.ordered_parameters.items %}
+                    {% for k,v in config_file.ordered_parameters.items %}
                     <tr>
                         <td>{{ k }}</td>
                         <td>{{ v }}</td>

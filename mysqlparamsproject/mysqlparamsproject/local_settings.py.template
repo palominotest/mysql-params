@@ -55,3 +55,14 @@ AWS_REGIONS = (
 # MySQL Credentials to use for data collection
 MYSQL_USER = ''
 MYSQL_PASSWORD = ''
+
+NON_RDS_HOSTS = (
+    {
+        'hostname': 'ec2-54-226-36-15.compute-1.amazonaws.com',
+        'ssh_user': 'ec2-user',
+        'identity_file': '/home/rodxavier/.ssh/rbondoc-test.pem',
+        'mysql_port': 3306,                                         # If no port is given, default will be 3306
+    },
+)
+
+MYSQL_CNF_FILE_PATH = '/home/ec2-user/my.cnf'

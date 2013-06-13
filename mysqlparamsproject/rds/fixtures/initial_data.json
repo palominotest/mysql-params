@@ -3,14 +3,24 @@
     "model": "rds.CollectorRun",
     "pk": 1,
     "fields": {
-      "collector": "parameter_group"
+      "collector": "parameter_group",
+      "collector_type": "rds"
     }
   },
   {
     "model": "rds.CollectorRun",
     "pk": 2,
     "fields": {
-        "collector": "db_instance"
+        "collector": "db_instance",
+        "collector_type": "mixed"
+    }
+  },
+  {
+    "model": "rds.CollectorRun",
+    "pk": 3,
+    "fields": {
+        "collector": "config_file",
+        "collector_type": "non-rds"
     }
   }
 ]

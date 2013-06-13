@@ -47,6 +47,8 @@ class CollectorMixin(object):
             db_table = 'param_groups'
         elif collector_run.collector == 'db_instance':
             db_table = 'db_instances'
+        elif collector_run.collector == 'config_file':
+            db_table = 'config_files'
         
         latest_txn = None
         try:
@@ -130,6 +132,10 @@ class CollectorMixin(object):
         last = self.previous_version(instance)
         return self.history(instance).count() == 1 or (last is not None and self.deleted(instance))
     
+    def changed(self, instance):
+        last = self.previous_version(instance)
+        return last is None or self.deleted(instance) or len(self.get_changed_parameters(last, instance)) > 0
+    
     def status(self, instance):
         if self.unreachable(instance):
             return 'unreachable'
@@ -170,17 +176,13 @@ class ParameterGroupManager(models.Manager, ParameterGroupMixin):
     def deleted(self, instance):
         return instance.parameters is None
         
-    def changed(self, instance):
-        last = self.previous_version(instance)
-        return last is None or self.deleted(instance) or len(self.get_changed_parameters(last, instance)) > 0
-        
 class DBInstanceMixin(CollectorMixin):
     pass
         
 class DBInstanceQuerySet(QuerySet, DBInstanceMixin):
     pass
     
-class DBInstanceManager(models.Manager,DBInstanceMixin):
+class DBInstanceManager(models.Manager, DBInstanceMixin):
     
     def get_query_set(self):
         return DBInstanceQuerySet(self.model, using=self._db)
@@ -193,16 +195,38 @@ class DBInstanceManager(models.Manager,DBInstanceMixin):
             port=None,
             parameter_group_name=None,
             parameters=None,
+            db_instance_type=None,
             run_time=run_time,
         )
         
     def unreachable(self, instance):
         return instance.region is None and instance.endpoint is None and instance.port is None and \
-                instance.parameters is None and instance.parameter_group_name is None 
+                instance.parameters is None and instance.db_instance_type is None and instance.parameter_group_name is None 
     
     def deleted(self, instance):
         return instance.parameters is None
         
-    def changed(self, instance):
-        last = self.previous_version(instance)
-        return last is None or self.deleted(instance) or len(self.get_changed_parameters(last, instance)) > 0
+class ConfigFileMixin(CollectorMixin):
+    pass
+        
+class ConfigFileQuerySet(QuerySet, ConfigFileMixin):
+    pass
+    
+class ConfigFileManager(models.Manager, ConfigFileMixin):
+    
+    def get_query_set(self):
+        return ConfigFileQuerySet(self.model, using=self._db)
+        
+    def create_unreachable_entry(self, name, run_time):
+        self.create(
+            name=name,
+            raw_content=None,
+            parameters=None,
+            run_time=run_time,
+        )
+    
+    def unreachable(self, instance):
+        return instance.parameters is None and instance.raw_content is None
+    
+    def deleted(self, instance):
+        return instance.parameters is None

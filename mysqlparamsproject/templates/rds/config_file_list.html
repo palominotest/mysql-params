@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}{{ block.super }} - DB Instances{% endblock title %}
+{% block title %}{{ block.super }} - Config Files{% endblock title %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ STATIC_URL }}css/prettyCheckable.css">
 {% endblock extra_css %}
 
-{% block hero %}<h1>DB Instances</h1>{% endblock hero %}
+{% block hero %}<h1>Config Files</h1>{% endblock hero %}
 
 {% block body %}
 
@@ -14,14 +14,14 @@
     <div class="row alert alert-error hide" id="alert">
         <div class="span12">
             <p>
-                <strong>Please choose db instances to compare.</strong><br />
-                <em>Note: Choosing one db instance will compare the instance to its previous version.</em>
+                <strong>Please choose config files to compare.</strong><br />
+                <em>Note: Choosing one config file will compare the instance to its previous version.</em>
             </p>
         </div>
     </div> 
     <div class="row">
         <div class="span12">
-            <form  id="compare-form" class="form-horizontal" method="POST" action="{% url 'db_instance_compare' %}">{% csrf_token %}
+            <form  id="compare-form" class="form-horizontal" method="POST" action="{% url 'config_file_compare' %}">{% csrf_token %}
                 <input type="hidden" id="object-ids" name="object-ids" />
                 <input type="submit" class="btn btn-primary" value="Compare Selected" />
             </form>
@@ -35,23 +35,15 @@
                     <tr>
                         <th>Add to comparison</th>
                         <th>Name</th>
-                        <th>Type</th>
-                        <th>Region</th>
-                        <th>Endpoint</th>
-                        <th>Port</th>
-                        <th>Parameter Group</th>
+                        <th>Created Time</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for dbi in db_instances %}
+                    {% for cf in config_files %}
                     <tr>
-                        <td><input type="checkbox" class="rows" value="{{ dbi.id }}" name="compare-selection" /></td>
-                        <td><a href="{% url 'db_instance_detail' dbi.id %}">{{ dbi.name }}</a></td>
-                        <td>{{ dbi.db_instance_type }}</td>
-                        <td>{{ dbi.region }}</td>
-                        <td>{{ dbi.endpoint}}</td>
-                        <td>{{ dbi.port }}</td>
-                        <td>{{ dbi.parameter_group_name }}</td>
+                        <td><input type="checkbox" class="rows" value="{{ cf.id }}" name="compare-selection" /></td>
+                        <td><a href="{% url 'config_file_detail' cf.id %}">{{ cf.name }}</a></td>
+                        <td>{{ cf.created_time }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

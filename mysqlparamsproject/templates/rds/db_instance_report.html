@@ -24,6 +24,7 @@
                     <tr>
                         <th>Status</th>
                         <th>Name</th>
+                        <th>Type</th>
                         <th>Region</th>
                         <th>Endpoint</th>
                         <th>Port</th>
@@ -33,12 +34,13 @@
                 <tbody>
                     {% for group in dbi_group %}
                     <tr>
-                        <td colspan="6"><strong>{{ group.grouper }}</strong></td>
+                        <td colspan="7"><strong>{{ group.grouper }}</strong></td>
                     </tr>
                     {% for dbi in group.list %}
                     <tr>
                         <td><strong>{{ dbi.status }}</strong></td>
                         <td><a href="{% url 'db_instance_detail' dbi.id %}">{{ dbi.name }}</a></td>
+                        <td>{{ dbi.db_instance_type }}</td>
                         <td>{{ dbi.region }}</td>
                         <td>{{ dbi.endpoint }}</td>
                         <td>{{ dbi.port }}</td>

@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand
 from colorama import init, Fore
 from texttable import Texttable
 
-from rds.models import CollectorRun, ParameterGroup, DBInstance
+from rds.models import CollectorRun, ParameterGroup, DBInstance, ConfigFile
 
 logger = logging.getLogger('mysqlparams')
 
@@ -61,6 +61,8 @@ class Command(BaseCommand):
                 self.do_compare_parameter_groups(names, engine)
             elif stat == 'db_instance':
                 self.do_compare_db_instances(names)
+            elif stat == 'config_file':
+                self.do_compare_config_files(names)
         except Exception, e:
             tb = traceback.format_exc()
             logger.error(tb)
@@ -166,6 +168,54 @@ class Command(BaseCommand):
             for dbi in dbis:
                 row.append(str(dbi.parameters.get(k)))
                 vals.append(str(dbi.parameters.get(k)))
+                
+            if len(set(vals)) > 1:
+                highlight_keys.append(k)
+                
+            rows.append(row)
+        
+        table.add_rows(rows)
+        table_str = table.draw()
+        lines = table_str.split('\n')
+        self._print(lines, highlight_keys)
+        
+    def do_compare_config_files(self, names):
+        names_list = names.split(',')
+        cfs = []
+        for name in names_list:
+            cf = ConfigFile.objects.find_last(name.strip())
+            if cf is not None and cf.status != 'deleted':
+                cfs.append(cf)
+        if len(names_list) == 1:
+            cf = ConfigFile.objects.find_last(names_list[0])
+            prev = cf.previous_version
+            if prev is not None and prev.status != 'deleted':
+                cfs.append(prev)
+        
+        if len(cfs) <= 1:
+            raise Exception, 'No comparisons can be made.'
+        
+        table = Texttable(max_width=200)
+        table.set_deco(Texttable.HEADER)
+        rows = []
+        header = []
+        header.append('Key')
+        for cf in cfs:
+            header.append('ID: %d - %s' % (cf.id, cf.name))
+        rows.append(header)
+        
+        keys = []
+        highlight_keys = []
+        for cf in cfs:
+            keys.extend(cf.parameters.keys())
+        keys = set(keys)
+        for k in sorted(keys):
+            row = []
+            row.append(k)
+            vals = []
+            for cf in cfs:
+                row.append(str(cf.parameters.get(k)))
+                vals.append(str(cf.parameters.get(k)))
                 
             if len(set(vals)) > 1:
                 highlight_keys.append(k)

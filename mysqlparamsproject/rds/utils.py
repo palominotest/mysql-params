@@ -60,7 +60,7 @@ def get_sorted_dict(objs):
 def get_needs_restart(dbis):
     needs_restart = []
     for dbi in dbis:
-        diff = dbi.get_difference_with_pg()
+        diff = dbi.get_difference_with_pg_or_cf()
         if len(diff) != 0:
             needs_restart.append((dbi, diff))
     return needs_restart
