@@ -163,7 +163,7 @@ class DBInstance(models.Model, StatisticMixin):
             if os.path.isfile(temp_file):
                 os.remove(temp_file)
             sftp_client.get(settings.MYSQL_CNF_FILE_PATH, temp_file)
-            config = ConfigParser.ConfigParser()
+            config = ConfigParser.ConfigParser(allow_no_value=True)
             config.readfp(open(temp_file))
             if config.has_section('mysqld'):
                 parameters=dict(config.items('mysqld'))
