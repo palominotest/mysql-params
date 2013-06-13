@@ -65,4 +65,4 @@ NON_RDS_HOSTS = (
     },
 )
 
-MYSQL_CNF_FILE_PATH = '/home/ec2-user/my.cnf'
+MYSQL_CNF_FILE_PATH = '/etc/mysql/my.cnf'

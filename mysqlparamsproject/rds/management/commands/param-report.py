@@ -37,7 +37,7 @@ class Command(BaseCommand):
             '--output',
             dest='output',
             default='text',
-            help='Specifies an output formatter. One of: email, text'
+            help='Specifies an output formatter. One of: email, text, nagios'
         ),
         make_option(
             '-s',

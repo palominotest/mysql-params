@@ -1,54 +1,141 @@
-#mysql-params
+# mysql-params
 
 Utility for tracking mysql parameters
 
-##Setup
-1. Create virtualenv
+## Contents
+1. Overview
+2. Getting Started
+3. Settings
+4. Usage
+5. Web GUI
+
+## Overview
+
+Mysql-params is a tool for tracking MySQL Parameters. Currently, the tool can collect parameters from four sources:
+
+- Amazon RDS Parameter Group
+- Amazon RDS DB Instance
+- Non-RDS host my.cnf file
+- Non-RDS DB Instance
+
+## Getting Started
+1. Setup pip, virtualenv and virtualenvwrapper. Refer to this guide(https://github.com/palominodb/PalominoDB-Public-Code-Repository/blob/master/doc/python_tools_installation_guide.txt) on how to setup these tools.
+
+2. Create a virtual environment
 
         mkvirtualenv param_tracker
+        
+    For succeeding uses, you can activate the virtual environment by:
+    
+        workon param_tracker
 
-2. Install requirements
+3. Install the requirements
 
+        cd <path/to/mysql-params>
         pip install -r requirements.txt
 
-3. Create Database
+4. Create a database to use
 
-        Create database param_tracker;
+        mysql -u <user> -p
+        mysql> CREATE DATABASE param_tracker;
 
-4. Configure local_settings.py.
+5. Configure local_settings.py. Mysql-params related settings are discussed thoroughly on the next section.
 
         cp local_settings.py.template local_settings.py
         # Make necessary changes
 
-5. Run syncdb
+6. Run syncdb
 
         ./manage.py syncdb
 
-6. Run migrations
+7. Run migrations
 
         ./manage.py migrate
 
+## Settings
+
+1. Databases - database to be used by Mysql-params. Note that the name should be the name of the database you created.
+
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.mysql', 
+                'NAME': 'param_tracker',
+                'USER': 'mysql_user',
+                'PASSWORD': 'password',
+                'HOST': '',                      # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+                'PORT': '',                      # Set to empty string for default.
+            }
+        }
+
+2. DEFAULT_FROM_EMAIL - email address where emails will be sent from
+
+        DEFAULT_FROM_EMAIL = 'email@palominodb.com'
+
+3. EMAIL_BACKEND - email backend to use. Currently supports smtp and sendmail backends. To use, uncomment the one that will be used and comment out the other.
+
+        #EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+        EMAIL_BACKEND = 'rds.backends.sendmail.EmailBackend'
+
+4. SMTP email backend settings - settings used when the SMTP email backend is used
+
+        EMAIL_HOST = 'smtp.gmail.com'
+        EMAIL_HOST_PASSWORD = 'password'
+        EMAIL_HOST_USER = 'example@gmail.com'
+        EMAIL_PORT = 587
+        EMAIL_SUBJECT_PREFIX = '[MySQL Parameter Tracker]'
+        EMAIL_USE_TLS = True
+
+5. Sendmail email backend settings - settings used when the sendmail email backend is used
+
+        SENDMAIL_PATH = '/usr/sbin/sendmail'
+
+6. AWS credentials - settings for giving Mysql-params access to AWS API.
+
+        AWS_ACCESS_KEY_ID = ''
+        AWS_SECRET_ACCESS_KEY = ''
+
+7. AWS_REGIONS - A tuple of AWS regions where data will be collected
+
+        AWS_REGIONS = (
+            'us-east-1',
+            #'eu-west-1',
+            #'us-west-1',
+            #'us-west-2',
+            #'sa-east-1',
+            #'ap-northeast-1',
+            #'ap-southeast-1',
+            #'ap-southeast-2'
+        )
+
+8. MySQL Credentials - MySQL username and password to connect to all db instances
+
+        MYSQL_USER = ''
+        MYSQL_PASSWORD = ''
+
+9. NON_RDS_HOSTS - A tuple of dictionaries containing the keys; hostname, ssh_user, identity_file and mysql_port. The hostname, ssh_user and identity_file keys are used for accessing the my.cnf file over sftp. Moreover, the identity_file should be an absolute path.
+
+        NON_RDS_HOSTS = (
+            {
+                'hostname': '',
+                'ssh_user': '',
+                'identity_file': '',
+                'mysql_port': 3306,   # If no port is given, default will be 3306
+            },
+        )
+
+10. MYSQL_CNF_FILE_PATH - Absolute path to the my.cnf file
+
+        MYSQL_CNF_FILE_PATH = '/etc/mysql/my.cnf'
+
 ##Usage
-1. param-collect - This is responsible for stat collection
+1. param-collect - This is responsible for parameter collection
     
         Usage: ./manage.py param-collect [options] 
 
         Options:
-          -v VERBOSITY, --verbosity=VERBOSITY
-                                Verbosity level; 0=minimal output, 1=normal output,
-                                2=verbose output, 3=very verbose output
-          --settings=SETTINGS   The Python path to a settings module, e.g.
-                                "myproject.settings.main". If this isn't provided, the
-                                DJANGO_SETTINGS_MODULE environment variable will be
-                                used.
-          --pythonpath=PYTHONPATH
-                                A directory to add to the Python path, e.g.
-                                "/home/djangoprojects/myproject".
-          --traceback           Print traceback on exception
           --stat=STAT           Collect a single <statistic>. See --list-stats for
                                 available statistics.
           --list-stats          List available statistics.
-          --version             show program's version number and exit
           -h, --help            show this help message and exit
           
     Example Usage:
@@ -60,26 +147,14 @@ Utility for tracking mysql parameters
         Usage: ./manage.py param-report [options] 
 
         Options:
-          -v VERBOSITY, --verbosity=VERBOSITY
-                                Verbosity level; 0=minimal output, 1=normal output,
-                                2=verbose output, 3=very verbose output
-          --settings=SETTINGS   The Python path to a settings module, e.g.
-                                "myproject.settings.main". If this isn't provided, the
-                                DJANGO_SETTINGS_MODULE environment variable will be
-                                used.
-          --pythonpath=PYTHONPATH
-                                A directory to add to the Python path, e.g.
-                                "/home/djangoprojects/myproject".
-          --traceback           Print traceback on exception
           --stat=STAT           Report a single <statistic>. See --list-stats for
                                 available statistics.
           --list-stats          List available statistics.
           -o OUTPUT, --output=OUTPUT
-                                Specifies an output formatter. One of: email, text
+                                Specifies an output formatter. One of: email, text, nagios
           -s SINCE, --since=SINCE
                                 Where <since> is something like: last(since the last
                                 collector run), 4h(4 hours), 1d(1 day), 1w(1 week)
-          --version             show program's version number and exit
           -h, --help            show this help message and exit
           
     Example Usage:
@@ -95,28 +170,17 @@ Utility for tracking mysql parameters
         # This will return the Nagios exit code 1(Warning) if any DB instance needs to be restarted. Otherwise, returns 0(Ok).
         ./manage.py param-report -o nagios
 
-3. param-check - Sends email alert for the previous data collection
+3. param-check - This sends an email alert for the previous data collection. This command sends a detailed report about the last data collection. This sends new, deleted and changed objects. For changed objects, this command includes what parameters were changed. Moreover, this also sends which db instances needs to be restarted.
 
     Example Usage:
     
         ./manage.py param-check
         
-4. param-compare - Compare parameter groups or db instances
+4. param-compare - This compares parameter groups, db instances or config files.
     
         Usage: ./manage.py param-compare [options] 
 
         Options:
-          -v VERBOSITY, --verbosity=VERBOSITY
-                                Verbosity level; 0=minimal output, 1=normal output,
-                                2=verbose output, 3=very verbose output
-          --settings=SETTINGS   The Python path to a settings module, e.g.
-                                "myproject.settings.main". If this isn't provided, the
-                                DJANGO_SETTINGS_MODULE environment variable will be
-                                used.
-          --pythonpath=PYTHONPATH
-                                A directory to add to the Python path, e.g.
-                                "/home/djangoprojects/myproject".
-          --traceback           Print traceback on exception
           --stat=STAT           Statistic to compare. See --list-stats for available
                                 statistics.(Default: parameter_group)
           --list-stats          List available statistics.
@@ -127,7 +191,6 @@ Utility for tracking mysql parameters
           -e ENGINE, --engine=ENGINE
                                 MySQL Engine used for comparison for default values.
                                 One of: mysql5.1, mysql5.5
-          --version             show program's version number and exit
           -h, --help            show this help message and exit
 
     Example Usage:
@@ -141,7 +204,10 @@ Utility for tracking mysql parameters
         # Compare db instances
         ./manage.py param-compare --names 'dbi1,dbi2' --stat db_instance
         
-##Web GUI
-To run the gui, execute the command below.
+        # Compare config files
+        ./manage.py param-compare --names 'cf1,cf2' --stat config_file
+        
+## Web GUI
+To run the gui, execute the command below. Moreover, you can use apache or nginx to serve the project through an actual web server.
     
     ./manage.py runserver
