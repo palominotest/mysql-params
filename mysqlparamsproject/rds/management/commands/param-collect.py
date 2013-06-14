@@ -191,7 +191,7 @@ class Command(BaseCommand):
         cur_snapshot = prev_snapshot.copy()
         prev_version = ParameterGroup.objects.filter(id__in=prev_snapshot)
         for pg in pgs:
-            if pg.DBParameterGroupFamily not in ('mysql5.5', 'mysql5.1'):
+            if 'mysql' not in pg.DBParameterGroupFamily:
                 continue
             pg = get_all_dbparameters(pg)
             new_pg = ParameterGroup(

@@ -66,3 +66,7 @@ NON_RDS_HOSTS = (
 )
 
 MYSQL_CNF_FILE_PATH = '/etc/mysql/my.cnf'
+
+# Default engine for comparing parameter groups
+# Allowed values: mysql5.1, mysql5.5
+DEFAULT_COMPARISON_ENGINE = 'mysql5.5'

@@ -126,6 +126,10 @@ Mysql-params is a tool for tracking MySQL Parameters. Currently, the tool can co
 10. MYSQL_CNF_FILE_PATH - Absolute path to the my.cnf file
 
         MYSQL_CNF_FILE_PATH = '/etc/mysql/my.cnf'
+        
+11. DEFAULT_COMPARISON_ENGINE - Default engine for comparing parameter groups. Allowed values: mysql5.1, mysql5.5.
+
+        DEFAULT_COMPARISON_ENGINE = 'mysql5.5'
 
 ##Usage
 1. param-collect - This is responsible for parameter collection

@@ -3,6 +3,7 @@ from datetime import datetime
 from itertools import groupby
 
 from django import http
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.views import generic
 
@@ -187,13 +188,10 @@ class ParameterGroupCompareView(generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ParameterGroupCompareView, self).get_context_data(**kwargs)
         request = self.request
-        engine = request.REQUEST.get('engine', 'MySQL 5.5')
+        engine = request.REQUEST.get('engine', settings.DEFAULT_COMPARISON_ENGINE)
         object_ids = request.REQUEST.get('object-ids', '')
         object_ids = object_ids.split(',')
-        if engine == 'MySQL 5.1':
-            default = 'default.mysql5.1'
-        else:
-            default = 'default.mysql5.5'
+        default = 'default.%s' % (engine)
         default_pg = ParameterGroup.objects.find_last(default)
         pgs = ParameterGroup.objects.filter(id__in=object_ids)
         if pgs.count() == 1:

@@ -24,8 +24,8 @@
             <form  id="compare-form" class="form-horizontal" method="POST" action="{% url 'param_group_compare' %}">{% csrf_token %}
                 <label>Default Engine: </label>
                 <select  class="default-engine" name="engine">
-                    <option>MySQL 5.1</option>
-                    <option selected>MySQL 5.5</option>
+                    <option value="mysql5.1">MySQL 5.1</option>
+                    <option value="mysql5.5" selected>MySQL 5.5</option>
                 </select><br />
                 <input type="hidden" id="object-ids" name="object-ids" />
                 <input type="submit" class="btn btn-primary" value="Compare Selected" />

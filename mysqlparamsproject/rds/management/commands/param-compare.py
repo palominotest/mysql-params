@@ -38,7 +38,7 @@ class Command(BaseCommand):
             '-e',
             '--engine',
             dest='engine',
-            default='mysql5.5',
+            default=settings.DEFAULT_COMPARISON_ENGINE,
             help='MySQL Engine used for comparison for default values. One of: mysql5.1, mysql5.5'
         ),
     )
@@ -81,10 +81,7 @@ class Command(BaseCommand):
     
     def do_compare_parameter_groups(self, names, engine):
         names_list = names.split(',')
-        if engine == 'mysql5.1':
-            default = 'default.mysql5.1'
-        else:
-            default = 'default.mysql5.5'
+        default = 'default.%s' % (engine)
         default_pg = ParameterGroup.objects.find_last(default)
         pgs = []
         for name in names_list:
