@@ -11,7 +11,7 @@ import paramiko
 from jsonfield import JSONField
 
 import managers
-from utils import get_all_dbparameters
+from utils import get_all_dbparameters, ParamComparer
 
 class StatisticMixin(object):
     
@@ -110,43 +110,33 @@ class DBInstance(models.Model, StatisticMixin):
         
     def get_difference_with_pg_or_cf(self):
         res = []
-        if self.db_instance_type == self.RDS:
+        if self.parameters is None:
+            pass
+        elif self.db_instance_type == self.RDS:
             conn = boto.rds.connect_to_region(self.region, aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
                                                 aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
             pg = conn.get_all_dbparameter_groups(self.parameter_group_name)[0]
             pg = get_all_dbparameters(pg)
             res = []
             for p in sorted(pg.modifiable()):
-                if self.parameters is None:
-                    break
+                key = p.name.replace('-', '_')
                 pg_val = p._value
-                if str(pg_val).endswith('/'):
-                    pg_val = pg_val[:-1]
-                if pg_val != None:
-                    dbi_val = self.parameters.get(p.name)
-                    copy_dbi_val = dbi_val
-                    boolean = False
-                    if str(dbi_val).upper() == 'OFF':
-                        dbi_val = '0'
-                        boolean = True
-                    if str(dbi_val).upper() == 'ON':
-                        dbi_val = '1'
-                        boolean = True
-                    if str(dbi_val).endswith('/'):
-                        dbi_val = dbi_val[:-1]
+                if pg_val is not None and key in self.parameters:
+                    if key in settings.FORWARD_KEY_LOOKUP.keys():
+                        dbi_val = self.parameters.get(settings.FORWARD_KEY_LOOKUP.get(key))
+                    else:
+                        dbi_val = self.parameters.get(key)
+                    comparer = ParamComparer(key=key, val=pg_val, dbi_val=dbi_val)
                     regex = re.search('{.*}', pg_val)
                     # Don't process pg values with pseudo variables
-                    if regex is None and pg_val != dbi_val and copy_dbi_val:
-                        if boolean:
-                            if pg_val == '0':
-                                pg_val = 'OFF'
-                            if pg_val == '1':
-                                pg_val = 'ON'
-                        res.append({
-                            'key': p.name,
-                            'val': pg_val,
-                            'dbi_val': copy_dbi_val,
-                        })
+                    if regex is None:
+                        equal = comparer.params_equal()
+                        if not equal:
+                            res.append({
+                                'key': key,
+                                'val': comparer.normalize_val(pg_val),
+                                'dbi_val': comparer.normalize_val(dbi_val),
+                            })
         elif self.db_instance_type == self.HOST:
             host = None
             for h in settings.NON_RDS_HOSTS:
@@ -168,28 +158,19 @@ class DBInstance(models.Model, StatisticMixin):
             if config.has_section('mysqld'):
                 parameters=dict(config.items('mysqld'))
                 for k,v in parameters.items():
-                    if k in self.parameters:
-                        dbi_val = self.parameters.get(k)
-                        copy_dbi_val = dbi_val
-                        boolean = False
-                        if str(dbi_val).upper() == 'OFF':
-                            dbi_val = '0'
-                            boolean = True
-                        if str(dbi_val).upper() == 'ON':
-                            dbi_val = '1'
-                            boolean = True
-                        if str(dbi_val).endswith('/'):
-                            dbi_val = dbi_val[:-1]
-                        if v != dbi_val and v != copy_dbi_val:
-                            if boolean:
-                                if v == '0':
-                                    v = 'OFF'
-                                if v == '1':
-                                    v = 'ON'
+                    key = k.replace('-', '_')
+                    if key in self.parameters:
+                        if key in settings.FORWARD_KEY_LOOKUP.keys():
+                            dbi_val = self.parameters.get(settings.FORWARD_KEY_LOOKUP.get(key))
+                        else:
+                            dbi_val = self.parameters.get(key)
+                        comparer = ParamComparer(key=key, val=v, dbi_val=dbi_val)
+                        equal = comparer.params_equal()
+                        if not equal:
                             res.append({
-                                'key': k,
-                                'val': v,
-                                'dbi_val': copy_dbi_val,
+                                'key': key,
+                                'val': comparer.normalize_val(v),
+                                'dbi_val': comparer.normalize_val(dbi_val),
                             })
             if os.path.isfile(temp_file):
                 os.remove(temp_file)

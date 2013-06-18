@@ -193,6 +193,10 @@ EMAIL_USE_TLS = ''
 # Sendmail Backend settings
 SENDMAIL_PATH = '/usr/sbin/sendmail'
 
+FORWARD_KEY_LOOKUP = {
+    'log_slow_queries': 'slow_query_log_file',
+}
+
 try:
     from local_settings import *
 except ImportError:

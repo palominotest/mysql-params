@@ -25,7 +25,7 @@ class ReportMixin(generic.ListView):
     
     def get_queryset(self):
         queryset = self.model.objects.all().order_by('-run_time')
-        since = self.request.GET.get('since')
+        since = self.request.GET.get('since', '72h')
         if since is not None and len(since) != 0:
             dtime = str_to_datetime(since)
             if dtime is not None:
