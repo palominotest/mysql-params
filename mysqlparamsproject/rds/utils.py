@@ -21,7 +21,7 @@ class ParamComparer(object):
         
     def get_comparison_type(self):
         comparison_type = 'string'
-        boolean_vals = ('OFF', 'ON')
+        boolean_vals = ('OFF', 'ON', 'TRUE', 'FALSE')
         val = str(self.val)
         dbi_val = str(self.dbi_val)
         is_numeric = False
@@ -49,7 +49,7 @@ class ParamComparer(object):
                 return_val = 'OFF'
             elif val == '1':
                 return_val = 'ON'
-            elif val in ('OFF', 'ON'):
+            elif val in ('OFF', 'ON', 'TRUE', 'FALSE'):
                 return_val = str(val)
         elif comparison_type == 'numeric':
             return_val = float(val)

@@ -320,9 +320,16 @@ class Command(BaseCommand):
                 config = ConfigParser.ConfigParser(allow_no_value=True)
                 config.readfp(open(temp_file))
                 if config.has_section('mysqld'):
+                    items = dict(config.items('mysqld'))
+                    params_dict = {}
+                    for k in items.keys():
+                        if items.get(k) is None:
+                            params_dict[k] = 'ON'
+                        else:
+                            params_dict[k] = items.get(k)
                     new_cf = ConfigFile(
                         name=hostname,
-                        parameters=dict(config.items('mysqld')),
+                        parameters=params_dict,
                         run_time=run_time,
                     )
                     with open(temp_file) as f:

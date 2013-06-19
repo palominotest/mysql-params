@@ -156,8 +156,14 @@ class DBInstance(models.Model, StatisticMixin):
             config = ConfigParser.ConfigParser(allow_no_value=True)
             config.readfp(open(temp_file))
             if config.has_section('mysqld'):
-                parameters=dict(config.items('mysqld'))
-                for k,v in parameters.items():
+                items = dict(config.items('mysqld'))
+                params_dict = {}
+                for k in items.keys():
+                    if items.get(k) is None:
+                        params_dict[k] = 'ON'
+                    else:
+                        params_dict[k] = items.get(k)
+                for k,v in params_dict.items():
                     key = k.replace('-', '_')
                     if key in self.parameters:
                         if key in settings.FORWARD_KEY_LOOKUP.keys():

@@ -195,6 +195,8 @@ SENDMAIL_PATH = '/usr/sbin/sendmail'
 
 FORWARD_KEY_LOOKUP = {
     'log_slow_queries': 'slow_query_log_file',
+    'default_character_set': 'character_set_server',
+    'default_collation': 'collation_server',
 }
 
 try:
