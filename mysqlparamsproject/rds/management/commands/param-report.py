@@ -205,7 +205,7 @@ class Command(BaseCommand):
                     table = Texttable()
                     table.set_cols_width([10, 30, 20])
                     table.set_deco(Texttable.HEADER)
-                    rows = [['Statuus', 'Name', 'Created Time']]
+                    rows = [['Status', 'Name', 'Created Time']]
                     lines.append('-- %s %s' % (run_time, ('-'*43)))
                     for element in group:
                         rows.append([element.status, element.name, element.created_time])
