@@ -386,7 +386,7 @@ class Command(BaseCommand):
                                             passwd=settings.MYSQL_PASSWORD,
                                             cursorclass=MySQLdb.cursors.DictCursor)
             except OperationalError, e:
-                logger.error('[error] Unable to connect to MySQL Instance %s' % (new_dbi.hostname))
+                logger.error('[error] Unable to connect to MySQL Instance %s' % (new_dbi.name))
                 continue
             cursor = mysql_conn.cursor()
             cursor.execute('SHOW GLOBAL VARIABLES')
