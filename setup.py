@@ -38,7 +38,7 @@ setup(
         'boto>=2.9.9',
         #'jsonfield==dev',
         'jsonfield>=0.9.18',
-        'texttable=0.8.1',
+        'texttable==0.8.1',
         'colorama>=0.2.5',
         'paramiko>=1.10.1',
         'hurry.filesize>=0.9'
