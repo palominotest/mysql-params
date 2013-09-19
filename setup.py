@@ -32,7 +32,7 @@ setup(
         'Django>=1.5.1',
         'MySQL-python>=1.2.4',
         #'South==dev',
-        'South>=0.8.1',
+        'South>=0.8.2',
         'argparse>=1.2.1',
         #'boto==dev',
         'boto>=2.9.9',
