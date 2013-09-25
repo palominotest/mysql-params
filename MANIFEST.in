@@ -1,4 +1,4 @@
 include COPYING
 include README.md
 include ez_setup.py
-recursive-include mysqlparamsproject *.py
+recursive-include mysqlparamsproject *.*
